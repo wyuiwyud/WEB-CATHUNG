@@ -2,8 +2,9 @@ import React from 'react';
 import type { Employee } from '../types';
 import { useStore } from '../store/useStore';
 import { Modal, Button, Avatar, Badge } from '../components/ui';
-import { formatCurrencyVND, formatVietnameseDate } from '../utils/time';
+import { formatCurrencyVND, formatDisplayDate } from '../utils/time';
 import { Clock, Calendar, CheckCircle, RotateCcw, FileText, Sun } from 'lucide-react';
+import { useTranslation } from '../i18n/translations';
 
 export interface ConfirmShiftData {
   startTime: string;
@@ -31,14 +32,15 @@ export const ConfirmShiftModal: React.FC<ConfirmShiftModalProps> = ({
   isLoading = false,
 }) => {
   const { isNightMode } = useStore();
+  const { t, language } = useTranslation();
   const estimatedPay = (data.totalMinutes / 60) * employee.hourlyRate;
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={onCloseAndEditAgain}
-      title="Xác nhận Giờ làm"
-      description="Vui lòng kiểm tra kỹ thông tin trước khi hoàn tất"
+      title={t('confirmModalTitle')}
+      description={t('confirmModalDesc')}
       maxWidth="md"
     >
       <div className="space-y-4">
@@ -52,7 +54,7 @@ export const ConfirmShiftModal: React.FC<ConfirmShiftModalProps> = ({
             </p>
           </div>
           <Badge variant="completed" size="sm">
-            Hoàn thành ca
+            {t('statusCompleted')}
           </Badge>
         </div>
 
@@ -61,15 +63,15 @@ export const ConfirmShiftModal: React.FC<ConfirmShiftModalProps> = ({
           <div className="py-2.5 flex items-center justify-between first:pt-0">
             <span className="text-slate-500 flex items-center gap-1.5 text-xs font-medium">
               <Calendar className="w-4 h-4 text-slate-400" />
-              <span>Ngày làm việc:</span>
+              <span>{t('workDateLabel')}</span>
             </span>
-            <span className="font-semibold text-slate-900">{formatVietnameseDate()}</span>
+            <span className="font-semibold text-slate-900">{formatDisplayDate(language)}</span>
           </div>
 
           <div className="py-2.5 flex items-center justify-between">
             <span className="text-slate-500 flex items-center gap-1.5 text-xs font-medium">
               <Clock className="w-4 h-4 text-indigo-500" />
-              <span>Khung giờ ca làm:</span>
+              <span>{t('shiftHoursLabel')}</span>
             </span>
             <span className="font-bold text-slate-900 tabular-nums">
               {data.startTime} — {data.endTime}
@@ -77,14 +79,14 @@ export const ConfirmShiftModal: React.FC<ConfirmShiftModalProps> = ({
           </div>
 
           <div className="py-2.5 flex items-center justify-between">
-            <span className="text-slate-500 text-xs font-medium">Tổng thời gian:</span>
+            <span className="text-slate-500 text-xs font-medium">{t('totalShiftDuration')}</span>
             <span className="font-extrabold text-base text-indigo-600 tabular-nums">
               {data.formattedDuration}
             </span>
           </div>
 
           <div className="py-2.5 flex items-center justify-between">
-            <span className="text-slate-500 text-xs font-medium">Lương ca ước tính:</span>
+            <span className="text-slate-500 text-xs font-medium">{t('estimatedSalary')}</span>
             <span className="font-bold text-emerald-600 tabular-nums">
               {formatCurrencyVND(estimatedPay)}
             </span>
@@ -94,7 +96,7 @@ export const ConfirmShiftModal: React.FC<ConfirmShiftModalProps> = ({
             <div className="pt-2.5 text-xs">
               <span className="text-slate-500 flex items-center gap-1 font-medium mb-1">
                 <FileText className="w-3.5 h-3.5 text-slate-400" />
-                <span>Ghi chú của bạn:</span>
+                <span>{t('yourNoteLabel')}</span>
               </span>
               <p className="text-slate-700 bg-slate-50 p-2 rounded-lg italic">
                 "{data.note}"
@@ -108,14 +110,14 @@ export const ConfirmShiftModal: React.FC<ConfirmShiftModalProps> = ({
           <div className="flex items-start gap-2 p-3 bg-amber-500/10 border border-amber-500/30 rounded-[14px] text-xs text-amber-900">
             <Sun className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
             <p className="font-semibold text-amber-950">
-              Đây là ca mở cửa! Sau khi bấm xác nhận, nhà hàng Cát Hưng sẽ bừng sáng đèn và bắt đầu hoạt động.
+              {t('confirmWakeTip')}
             </p>
           </div>
         ) : (
           <div className="flex items-start gap-2 p-3 bg-emerald-50/70 border border-emerald-100 rounded-[14px] text-xs text-emerald-900">
             <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
             <p>
-              Sau khi xác nhận, ca làm việc sẽ được tự động chốt và lưu vào Bảng giờ làm hôm nay.
+              {t('confirmAutoSaveTip')}
             </p>
           </div>
         )}
@@ -130,7 +132,7 @@ export const ConfirmShiftModal: React.FC<ConfirmShiftModalProps> = ({
             onClick={onCloseAndEditAgain}
             disabled={isLoading}
           >
-            Chọn lại
+            {t('btnEditAgain')}
           </Button>
 
           <Button
@@ -146,7 +148,7 @@ export const ConfirmShiftModal: React.FC<ConfirmShiftModalProps> = ({
                 : 'shadow-indigo-500/25 font-bold'
             }
           >
-            {isNightMode ? 'Xác nhận & Mở quán' : 'Xác nhận'}
+            {isNightMode ? t('btnConfirmShiftWake') : t('btnConfirmShift')}
           </Button>
         </div>
       </div>

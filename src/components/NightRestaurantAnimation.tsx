@@ -1,5 +1,6 @@
 import React from 'react';
 import { Moon, Sparkles, Flame, Sun } from 'lucide-react';
+import { useTranslation } from '../i18n/translations';
 
 interface NightRestaurantAnimationProps {
   onStartNewShift: () => void;
@@ -12,6 +13,8 @@ export const NightRestaurantAnimation: React.FC<NightRestaurantAnimationProps> =
   completedCount,
   totalHoursFormatted,
 }) => {
+  const { t, language } = useTranslation();
+
   return (
     <div className="relative overflow-hidden rounded-[26px] bg-gradient-to-b from-[#060913] via-[#0B1120] to-[#151C35] border border-indigo-500/30 p-6 sm:p-8 text-white text-center shadow-[0_20px_50px_rgba(0,0,0,0.6)] transition-all duration-1000 animate-fade-in my-3">
       {/* Background Animated Twinkling Stars */}
@@ -114,31 +117,31 @@ export const NightRestaurantAnimation: React.FC<NightRestaurantAnimationProps> =
 
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-800 text-amber-300 text-xs font-bold mb-1.5 border border-slate-700 shadow-sm">
             <Flame className="w-3.5 h-3.5 fill-amber-400 text-amber-400 opacity-80" />
-            <span>Cát Hưng Xiên Nướng</span>
+            <span>{t('restaurantName')}</span>
           </div>
 
           <div className="flex items-center justify-center gap-1.5 mt-0.5">
             <span className="text-sm select-none">🍢</span>
             <h3 className="text-sm sm:text-base font-extrabold text-slate-100 tracking-tight">
-              Quán Đã Tắt Đèn Nghỉ Ngơi
+              {t('nightClosedTitle')}
             </h3>
             <span className="text-sm select-none">💤</span>
           </div>
           <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-            Tất cả thành viên hôm nay đã hoàn thành ca làm và về nhà an toàn. Hẹn gặp lại vào ca làm tiếp theo!
+            {t('nightClosedDesc')}
           </p>
 
           {/* Daily summary badge */}
           <div className="mt-3 pt-2.5 border-t border-slate-800 flex items-center justify-around text-xs text-slate-300">
             <div>
-              <span className="text-[10px] text-slate-400 block">Số ca hoàn tất</span>
+              <span className="text-[10px] text-slate-400 block">{t('completedShiftsCount')}</span>
               <span className="font-extrabold text-emerald-400 text-sm tabular-nums">
-                {completedCount} ca
+                {completedCount} {language === 'zh' ? '班' : 'ca'}
               </span>
             </div>
             <div className="w-px h-6 bg-slate-800" />
             <div>
-              <span className="text-[10px] text-slate-400 block">Tổng thời gian</span>
+              <span className="text-[10px] text-slate-400 block">{t('totalWorkHours')}</span>
               <span className="font-extrabold text-amber-400 text-sm tabular-nums">
                 {totalHoursFormatted}
               </span>
@@ -154,11 +157,11 @@ export const NightRestaurantAnimation: React.FC<NightRestaurantAnimationProps> =
             className="w-full py-3.5 px-5 rounded-[16px] bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-black text-sm uppercase tracking-wider shadow-[0_8px_25px_rgba(245,158,11,0.35)] transition-all active:scale-95 flex items-center justify-center gap-2 group cursor-pointer"
           >
             <Sun className="w-5 h-5 text-slate-950 fill-slate-950/20 group-hover:rotate-45 transition-transform" />
-            <span>BẮT ĐẦU CA MỚI • MỞ CỬA QUÁN</span>
+            <span>{t('btnWakeUpRestaurant')}</span>
           </button>
           <p className="text-[11px] text-slate-400 text-center flex items-center justify-center gap-1">
             <Sparkles className="w-3 h-3 text-amber-400" />
-            <span>Bấm vào để nhà hàng sáng đèn và hoạt động trở lại</span>
+            <span>{t('wakeUpHint')}</span>
           </p>
         </div>
       </div>

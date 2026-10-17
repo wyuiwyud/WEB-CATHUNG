@@ -117,15 +117,31 @@ export function formatDuration(totalMinutes: number): string {
 }
 
 /**
- * Format Vietnamese date e.g. "Chủ Nhật, 18/10/2026"
+ * Format date for display according to language
  */
-export function formatVietnameseDate(date: Date = new Date()): string {
+export function formatDisplayDate(lang: 'vi' | 'zh' = 'vi', date: Date = new Date()): string {
+  if (lang === 'zh') {
+    const daysZh = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+    const dayName = daysZh[date.getDay()];
+    const y = date.getFullYear();
+    const m = date.getMonth() + 1;
+    const d = date.getDate();
+    return `${y}年${m}月${d}日 ${dayName}`;
+  }
+
   const days = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
   const dayName = days[date.getDay()];
   const d = date.getDate().toString().padStart(2, '0');
   const m = (date.getMonth() + 1).toString().padStart(2, '0');
   const y = date.getFullYear();
   return `${dayName}, ${d}/${m}/${y}`;
+}
+
+/**
+ * Format Vietnamese date e.g. "Chủ Nhật, 18/10/2026"
+ */
+export function formatVietnameseDate(date: Date = new Date()): string {
+  return formatDisplayDate('vi', date);
 }
 
 /**

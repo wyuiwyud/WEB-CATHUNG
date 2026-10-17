@@ -46,6 +46,10 @@ interface StoreContextType {
   // Night Mode state
   isNightMode: boolean;
   setIsNightMode: (active: boolean) => void;
+
+  // Language state (Vietnamese 'vi' | Chinese 'zh')
+  language: 'vi' | 'zh';
+  setLanguage: (lang: 'vi' | 'zh') => void;
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -55,6 +59,7 @@ const STORAGE_KEYS = {
   SHIFTS: 'timetrack_cathung_shifts_v2',
   RECENT_IDS: 'timetrack_cathung_recent_v2',
   NIGHT_MODE: 'timetrack_cathung_night_mode_v2',
+  LANGUAGE: 'timetrack_cathung_language_v2',
 };
 
 export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -104,7 +109,24 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   });
 
+  // Language switcher state: Vietnamese ('vi') or Chinese ('zh')
+  const [language, setLanguage] = useState<'vi' | 'zh'>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.LANGUAGE);
+      if (saved === 'vi' || saved === 'zh') return saved;
+    } catch {}
+    return 'vi';
+  });
+
   // Sync to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEYS.LANGUAGE, language);
+    } catch (e) {
+      console.error('Failed to save language', e);
+    }
+  }, [language]);
+
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEYS.NIGHT_MODE, JSON.stringify(isNightMode));
@@ -449,6 +471,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         exportSalaryExcel,
         isNightMode,
         setIsNightMode,
+        language,
+        setLanguage,
       }}
     >
       {children}

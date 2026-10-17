@@ -10,8 +10,9 @@ import {
   Sun,
   Moon,
 } from 'lucide-react';
-import { formatVietnameseDate, formatDuration } from '../utils/time';
+import { formatDisplayDate, formatDuration } from '../utils/time';
 import { NightRestaurantAnimation } from '../components/NightRestaurantAnimation';
+import { useTranslation } from '../i18n/translations';
 
 interface LiveBoardScreenProps {
   onOpenAdmin: () => void;
@@ -23,6 +24,7 @@ export const LiveBoardScreen: React.FC<LiveBoardScreenProps> = ({
   onNewCheckIn,
 }) => {
   const { employees, shifts, newAddedShiftId, isNightMode } = useStore();
+  const { t, language } = useTranslation();
   const [statusFilter, setStatusFilter] = useState<'all' | 'working' | 'completed' | 'not_started'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -109,12 +111,12 @@ export const LiveBoardScreen: React.FC<LiveBoardScreenProps> = ({
             <h1 className={`text-xl sm:text-2xl font-black tracking-tight ${
               isAllOffDuty ? 'text-white' : 'text-slate-900'
             }`}>
-              Cát Hưng Xiên Nướng
+              {t('restaurantName')}
             </h1>
             {isAllOffDuty && (
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-indigo-950/80 text-amber-300 border border-indigo-700/60 shadow-sm animate-pulse">
                 <Moon className="w-3 h-3 text-amber-300 fill-amber-300/40" />
-                <span>Nghỉ Đêm</span>
+                <span>{language === 'zh' ? '打烊休息' : 'Nghỉ Đêm'}</span>
               </span>
             )}
           </div>
@@ -124,8 +126,8 @@ export const LiveBoardScreen: React.FC<LiveBoardScreenProps> = ({
             <Clock className={`w-3.5 h-3.5 ${isAllOffDuty ? 'text-amber-400' : 'text-indigo-500'}`} />
             <span>
               {isAllOffDuty
-                ? `Đêm khuya — Toàn bộ ca đã kết thúc (${formatVietnameseDate()})`
-                : `Bảng giờ làm — ${formatVietnameseDate()}`}
+                ? `${t('boardNightTitle')} (${formatDisplayDate(language)})`
+                : `${t('dateLabel')} — ${formatDisplayDate(language)}`}
             </span>
           </p>
         </div>
@@ -141,7 +143,7 @@ export const LiveBoardScreen: React.FC<LiveBoardScreenProps> = ({
             onClick={onOpenAdmin}
             className="from-slate-900 to-indigo-950 border border-indigo-500/30 text-white shadow-md hover:shadow-indigo-500/20"
           >
-            Quản trị & Lương
+            {t('adminAndSalaryBtn')}
           </Button>
 
           <Button
@@ -156,7 +158,7 @@ export const LiveBoardScreen: React.FC<LiveBoardScreenProps> = ({
                 : 'border-indigo-200 text-indigo-700 bg-indigo-50/60 hover:bg-indigo-100'
             }
           >
-            {isAllOffDuty ? 'Mở cửa quán' : 'Chấm công tiếp'}
+            {isAllOffDuty ? t('openShopBtn') : t('newCheckinBtn')}
           </Button>
         </div>
       </div>
@@ -170,8 +172,6 @@ export const LiveBoardScreen: React.FC<LiveBoardScreenProps> = ({
         />
       )}
 
-
-
       {/* Filter and Search Bar */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 mb-4">
         {/* Search */}
@@ -183,7 +183,7 @@ export const LiveBoardScreen: React.FC<LiveBoardScreenProps> = ({
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Tìm theo tên thành viên..."
+            placeholder={t('searchInBoardPlaceholder')}
             className={`w-full min-h-[42px] pl-10 pr-3 rounded-[14px] border text-xs focus:outline-none transition-colors ${
               isAllOffDuty
                 ? 'bg-slate-900/90 border-slate-800 text-white placeholder:text-slate-500 focus:border-amber-500'
@@ -202,7 +202,7 @@ export const LiveBoardScreen: React.FC<LiveBoardScreenProps> = ({
                 : isAllOffDuty ? 'bg-slate-900/90 border border-slate-800 text-slate-400 hover:text-white' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
             }`}
           >
-            Tất cả ({employees.length})
+            {t('filterAll')} ({employees.length})
           </button>
           <button
             onClick={() => setStatusFilter('working')}
@@ -212,7 +212,7 @@ export const LiveBoardScreen: React.FC<LiveBoardScreenProps> = ({
                 : isAllOffDuty ? 'bg-slate-900/90 border border-slate-800 text-slate-400 hover:text-white' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
             }`}
           >
-            Đang làm ({kpis.working})
+            {t('filterWorking')} ({kpis.working})
           </button>
           <button
             onClick={() => setStatusFilter('completed')}
@@ -222,7 +222,7 @@ export const LiveBoardScreen: React.FC<LiveBoardScreenProps> = ({
                 : isAllOffDuty ? 'bg-slate-900/90 border border-slate-800 text-slate-400 hover:text-white' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
             }`}
           >
-            Đã hoàn thành ({kpis.completed})
+            {t('filterCompleted')} ({kpis.completed})
           </button>
           <button
             onClick={() => setStatusFilter('not_started')}
@@ -232,7 +232,7 @@ export const LiveBoardScreen: React.FC<LiveBoardScreenProps> = ({
                 : isAllOffDuty ? 'bg-slate-900/90 border border-slate-800 text-slate-400 hover:text-white' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
             }`}
           >
-            Chưa vào ca ({kpis.notStarted})
+            {t('filterNotStarted')} ({kpis.notStarted})
           </button>
         </div>
       </div>
@@ -274,7 +274,7 @@ export const LiveBoardScreen: React.FC<LiveBoardScreenProps> = ({
                       </h3>
                       {employee.isAdmin && (
                         <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-amber-400/20 text-amber-300 border border-amber-400/30">
-                          Admin
+                          {t('adminBadge')}
                         </span>
                       )}
                     </div>
@@ -293,34 +293,34 @@ export const LiveBoardScreen: React.FC<LiveBoardScreenProps> = ({
                       <div className={`text-xs font-bold tabular-nums ${
                         isAllOffDuty ? 'text-slate-200' : 'text-slate-900'
                       }`}>
-                        {shift.startTime} — {shift.endTime || 'Hiện tại'}
+                        {shift.startTime} — {shift.endTime || (language === 'zh' ? '在岗中' : 'Hiện tại')}
                       </div>
                       <div className={`text-[11px] font-semibold tabular-nums mt-0.5 ${
                         isAllOffDuty ? 'text-amber-400' : 'text-indigo-600'
                       }`}>
                         {shift.totalMinutes > 0
-                          ? `Tổng: ${formatDuration(shift.totalMinutes)}`
-                          : 'Đang đếm giờ...'}
+                          ? `${t('totalWorked')} ${formatDuration(shift.totalMinutes)}`
+                          : t('countingTime')}
                       </div>
                     </div>
                   ) : (
                     <span className={`text-xs italic ${
                       isAllOffDuty ? 'text-slate-600' : 'text-slate-400'
-                    }`}>Chưa vào ca</span>
+                    }`}>{t('statusNotStarted')}</span>
                   )}
 
                   <div className="mt-1 flex justify-end">
                     {status === 'working' ? (
                       <Badge variant="working" size="sm">
-                        Đang làm
+                        {t('statusWorking')}
                       </Badge>
                     ) : status === 'completed' ? (
                       <Badge variant="completed" size="sm">
-                        Đã hoàn thành
+                        {t('statusCompleted')}
                       </Badge>
                     ) : (
                       <Badge variant="neutral" size="sm" dot={false}>
-                        Chưa vào ca
+                        {t('statusNotStarted')}
                       </Badge>
                     )}
                   </div>
@@ -332,7 +332,7 @@ export const LiveBoardScreen: React.FC<LiveBoardScreenProps> = ({
                 <div className={`mt-2 pt-2 border-t text-[11px] italic ${
                   isAllOffDuty ? 'border-slate-800 text-slate-400' : 'border-slate-100 text-slate-500'
                 }`}>
-                  Ghi chú: "{shift.note}"
+                  {language === 'zh' ? '备注：' : 'Ghi chú: '} "{shift.note}"
                 </div>
               )}
             </Card>
@@ -343,7 +343,7 @@ export const LiveBoardScreen: React.FC<LiveBoardScreenProps> = ({
           <div className={`p-8 text-center rounded-[20px] border ${
             isAllOffDuty ? 'bg-slate-900/80 border-slate-800 text-slate-400' : 'bg-white border-slate-200 text-slate-500'
           }`}>
-            <p className="text-sm">Không có thành viên nào trong danh mục này</p>
+            <p className="text-sm">{t('noMemberInCategory')}</p>
           </div>
         )}
       </div>
@@ -369,7 +369,7 @@ export const LiveBoardScreen: React.FC<LiveBoardScreenProps> = ({
               : 'shadow-[0_12px_28px_rgba(79,70,229,0.35)]'
           }`}
         >
-          {isAllOffDuty ? 'MỞ CỬA QUÁN • CHẤM CÔNG MỚI' : 'CHẤM CÔNG THÊM THÀNH VIÊN'}
+          {isAllOffDuty ? t('floatingOpenShopBtn') : t('floatingNewCheckinBtn')}
         </Button>
       </div>
     </div>

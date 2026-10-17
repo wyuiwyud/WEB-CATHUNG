@@ -1,9 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { useStore } from '../store/useStore';
+import { useTranslation } from '../i18n/translations';
 import type { Employee } from '../types';
 import { Card, Avatar, Badge } from '../components/ui';
 import { Search, ChevronRight, Flame, Users, Calendar, ArrowRight, Moon } from 'lucide-react';
-import { formatVietnameseDate } from '../utils/time';
+import { formatDisplayDate } from '../utils/time';
 
 interface SelectEmployeeScreenProps {
   onSelectEmployee: (emp: Employee) => void;
@@ -15,6 +16,7 @@ export const SelectEmployeeScreen: React.FC<SelectEmployeeScreenProps> = ({
   onGoToLiveBoard,
 }) => {
   const { employees, recentEmployeeIds, shifts, isNightMode } = useStore();
+  const { t, language } = useTranslation();
   const [searchTerm, setSearchTerm] = useState('');
 
   // Filter employees by search term
@@ -53,25 +55,30 @@ export const SelectEmployeeScreen: React.FC<SelectEmployeeScreenProps> = ({
         {isNightMode ? (
           <div className="inline-flex items-center justify-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-950/90 border border-indigo-700/60 text-amber-300 text-xs font-bold mb-3 shadow-md animate-pulse">
             <Moon className="w-3.5 h-3.5 fill-amber-300/40 text-amber-300" />
-            <span>Màn đêm buông xuống • Chọn người mở ca để đánh thức quán</span>
+            <span>{t('nightModeSelectBanner')}</span>
           </div>
         ) : (
           <div className="inline-flex items-center justify-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-100/80 border border-orange-200/80 text-orange-700 text-xs font-semibold mb-3 shadow-sm">
             <Flame className="w-3.5 h-3.5 fill-orange-500 text-orange-600 animate-pulse" />
-            <span>Hệ thống Chấm công & Giờ làm</span>
+            <span>{t('appSubtitle')}</span>
           </div>
         )}
         
         <h1 className={`text-2xl sm:text-3xl font-extrabold tracking-tight ${
           isNightMode ? 'text-white' : 'text-[#0F172A]'
         }`}>
-          Cát Hưng Xiên Nướng
+          {t('restaurantName')}
+          {language === 'zh' && (
+            <span className="block text-xs font-semibold text-slate-400 mt-0.5">
+              Cát Hưng Xiên Nướng
+            </span>
+          )}
         </h1>
         <p className={`text-sm mt-1 flex items-center justify-center gap-1.5 ${
           isNightMode ? 'text-slate-400' : 'text-[#64748B]'
         }`}>
           <Calendar className="w-4 h-4 text-slate-400" />
-          <span>{formatVietnameseDate()}</span>
+          <span>{formatDisplayDate(language)}</span>
         </p>
       </div>
 
@@ -92,8 +99,12 @@ export const SelectEmployeeScreen: React.FC<SelectEmployeeScreenProps> = ({
             <Users className="w-5 h-5" />
           </div>
           <div>
-            <h4 className={`text-sm font-bold ${isNightMode ? 'text-white' : 'text-slate-900'}`}>Xem Bảng Giờ Làm Hôm Nay</h4>
-            <p className={`text-xs ${isNightMode ? 'text-slate-400' : 'text-slate-500'}`}>Xem ai đang làm, ai đã tan ca & vào trang Admin</p>
+            <h4 className={`text-sm font-bold ${isNightMode ? 'text-white' : 'text-slate-900'}`}>
+              {t('viewLiveBoardBtn')}
+            </h4>
+            <p className={`text-xs ${isNightMode ? 'text-slate-400' : 'text-slate-500'}`}>
+              {t('viewLiveBoardDesc')}
+            </p>
           </div>
         </div>
         <div className={`w-8 h-8 rounded-full flex items-center justify-center shadow-sm ${
@@ -112,7 +123,7 @@ export const SelectEmployeeScreen: React.FC<SelectEmployeeScreenProps> = ({
           type="text"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Tìm tên nhân viên, vị trí (nướng, thu ngân...)"
+          placeholder={t('searchEmployeePlaceholder')}
           className={`w-full min-h-[48px] pl-11 pr-4 py-2.5 rounded-[16px] text-sm placeholder:text-slate-400 focus:outline-none transition-all shadow-sm ${
             isNightMode
               ? 'bg-slate-900/90 border border-slate-800 text-white focus:border-amber-400 focus:ring-2 focus:ring-amber-500/20'
@@ -126,7 +137,7 @@ export const SelectEmployeeScreen: React.FC<SelectEmployeeScreenProps> = ({
               isNightMode ? 'text-slate-300 bg-slate-800' : 'text-slate-400 bg-slate-100'
             }`}
           >
-            Xóa
+            {t('clearText')}
           </button>
         )}
       </div>
@@ -139,9 +150,9 @@ export const SelectEmployeeScreen: React.FC<SelectEmployeeScreenProps> = ({
               isNightMode ? 'text-amber-300' : 'text-slate-500'
             }`}>
               <span>★</span>
-              <span>Gần đây</span>
+              <span>{t('recentLabel')}</span>
             </span>
-            <span className="text-xs text-slate-400">Chọn nhanh</span>
+            <span className="text-xs text-slate-400">{t('quickSelectLabel')}</span>
           </div>
           <div className="grid grid-cols-2 gap-2.5">
             {recentEmployees.slice(0, 2).map((emp) => {
@@ -173,9 +184,9 @@ export const SelectEmployeeScreen: React.FC<SelectEmployeeScreenProps> = ({
       <div>
         <div className="flex items-center justify-between mb-2.5 px-1">
           <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-            Danh sách nhân viên ({filteredEmployees.length})
+            {t('employeeListLabel')} ({filteredEmployees.length})
           </span>
-          <span className="text-xs text-slate-400">Chạm để chọn ca</span>
+          <span className="text-xs text-slate-400">{t('tapToSelectShift')}</span>
         </div>
 
         <div className="space-y-2.5">
@@ -209,7 +220,7 @@ export const SelectEmployeeScreen: React.FC<SelectEmployeeScreenProps> = ({
                       </h3>
                       {emp.isAdmin && (
                         <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-amber-400/20 text-amber-300 border border-amber-400/40">
-                          Admin
+                          {t('adminBadge')}
                         </span>
                       )}
                     </div>
@@ -224,17 +235,17 @@ export const SelectEmployeeScreen: React.FC<SelectEmployeeScreenProps> = ({
                 <div className="flex items-center gap-2 shrink-0">
                   {status === 'working' ? (
                     <Badge variant="working" size="sm">
-                      Đang làm
+                      {t('statusWorking')}
                     </Badge>
                   ) : status ? (
                     <Badge variant="completed" size="sm">
-                      Đã hoàn thành
+                      {t('statusCompleted')}
                     </Badge>
                   ) : (
                     <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${
                       isNightMode ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-400'
                     }`}>
-                      Chưa vào ca
+                      {t('statusNotStarted')}
                     </span>
                   )}
                   <ChevronRight className="w-4 h-4 text-slate-400" />
@@ -247,12 +258,12 @@ export const SelectEmployeeScreen: React.FC<SelectEmployeeScreenProps> = ({
             <div className={`p-8 text-center rounded-[20px] border ${
               isNightMode ? 'bg-slate-900/80 border-slate-800 text-slate-400' : 'bg-white border-slate-200 text-slate-500'
             }`}>
-              <p className="text-sm">Không tìm thấy nhân viên phù hợp</p>
+              <p className="text-sm">{t('noEmployeeFound')}</p>
               <button
                 onClick={() => setSearchTerm('')}
                 className="text-xs text-amber-400 font-bold mt-2"
               >
-                Xóa bộ lọc tìm kiếm
+                {t('clearSearch')}
               </button>
             </div>
           )}

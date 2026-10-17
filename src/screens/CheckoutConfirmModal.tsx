@@ -18,60 +18,19 @@ import {
   Home,
   Bike,
 } from 'lucide-react';
-
+import { useTranslation } from '../i18n/translations';
 
 export interface CheckoutPreset {
   id: string;
   time: string;
-  label: string;
-  sub: string;
-  badge: string;
-  badgeColor: string;
-  cardBorder: string;
-  activeColor: string;
+  badgeKey: 'top1' | 'top2' | 'top3' | 'top4';
 }
 
 export const POPULAR_CHECKOUT_PRESETS: CheckoutPreset[] = [
-  {
-    id: 'top1',
-    time: '00:00',
-    label: '00:00 (0h đêm)',
-    sub: 'Dọn dẹp xong',
-    badge: '🥇 Top 1',
-    badgeColor: 'bg-amber-100 text-amber-900 border-amber-300',
-    cardBorder: 'hover:border-amber-400 hover:bg-amber-50/50',
-    activeColor: 'border-amber-500 bg-amber-50/90 ring-2 ring-amber-400/30',
-  },
-  {
-    id: 'top2',
-    time: '01:00',
-    label: '01:00 (1h sáng)',
-    sub: 'Khách đông về muộn',
-    badge: '🥈 Top 2',
-    badgeColor: 'bg-indigo-100 text-indigo-900 border-indigo-300',
-    cardBorder: 'hover:border-indigo-400 hover:bg-indigo-50/50',
-    activeColor: 'border-indigo-500 bg-indigo-50/90 ring-2 ring-indigo-400/30',
-  },
-  {
-    id: 'top3',
-    time: '02:00',
-    label: '02:00 (2h sáng)',
-    sub: 'Ca khuya đóng cửa',
-    badge: '🥉 Top 3',
-    badgeColor: 'bg-purple-100 text-purple-900 border-purple-300',
-    cardBorder: 'hover:border-purple-400 hover:bg-purple-50/50',
-    activeColor: 'border-purple-500 bg-purple-50/90 ring-2 ring-purple-400/30',
-  },
-  {
-    id: 'top4',
-    time: '23:00',
-    label: '23:00 (23h đêm)',
-    sub: 'Ca sớm nghỉ trước',
-    badge: '🏅 Top 4',
-    badgeColor: 'bg-emerald-100 text-emerald-900 border-emerald-300',
-    cardBorder: 'hover:border-emerald-400 hover:bg-emerald-50/50',
-    activeColor: 'border-emerald-500 bg-emerald-50/90 ring-2 ring-emerald-400/30',
-  },
+  { id: 'top1', time: '00:00', badgeKey: 'top1' },
+  { id: 'top2', time: '01:00', badgeKey: 'top2' },
+  { id: 'top3', time: '02:00', badgeKey: 'top3' },
+  { id: 'top4', time: '23:00', badgeKey: 'top4' },
 ];
 
 interface CheckoutConfirmModalProps {
@@ -89,43 +48,45 @@ export const CheckoutConfirmModal: React.FC<CheckoutConfirmModalProps> = ({
   onClose,
   onConfirmCheckout,
 }) => {
+  const { t, language } = useTranslation();
+
   // Compute recent predicted times (e.g. 15 mins ago, 30 mins ago, 45 mins ago when getting home)
   const predictedRecentTimes = useMemo(() => {
     const now = new Date();
     const currentM = now.getHours() * 60 + now.getMinutes();
 
     const calcTimeMinus = (minutesAgo: number) => {
-      let t = currentM - minutesAgo;
-      if (t < 0) t += 24 * 60;
-      return formatMinutesToTime(t);
+      let tMin = currentM - minutesAgo;
+      if (tMin < 0) tMin += 24 * 60;
+      return formatMinutesToTime(tMin);
     };
 
     return [
       {
         id: 'ago-15',
-        label: '15p trước',
+        label: language === 'zh' ? '15分钟前' : '15p trước',
         time: calcTimeMinus(15),
-        desc: 'Vừa dọn xong & rời quán',
+        desc: language === 'zh' ? '刚收拾完毕离店' : 'Vừa dọn xong & rời quán',
         icon: Bike,
       },
       {
         id: 'ago-30',
-        label: '30p trước',
+        label: language === 'zh' ? '30分钟前' : '30p trước',
         time: calcTimeMinus(30),
-        desc: 'Đang trên đường về',
+        desc: language === 'zh' ? '正在回家路上' : 'Đang trên đường về',
         icon: Bike,
       },
       {
         id: 'ago-45',
-        label: '45p trước',
+        label: language === 'zh' ? '45分钟前' : '45p trước',
         time: calcTimeMinus(45),
-        desc: 'Vừa về tới nhà',
+        desc: language === 'zh' ? '刚刚到家' : 'Vừa về tới nhà',
         icon: Home,
       },
     ];
-  }, []);
+  }, [language]);
 
-  // Default to 15-30 mins ago if user got home, or current time
+  // Default to current time
   const [selectedEndTime, setSelectedEndTime] = useState<string>(() => {
     return getCurrentTimeString();
   });
@@ -147,8 +108,8 @@ export const CheckoutConfirmModal: React.FC<CheckoutConfirmModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Xác nhận Giờ Tan Ca"
-      description="Menu xác nhận đơn giản — Chọn giờ lúc bạn kết thúc làm việc"
+      title={t('checkoutModalTitle')}
+      description={t('checkoutModalDesc')}
       maxWidth="md"
     >
       <div className="space-y-4">
@@ -159,12 +120,12 @@ export const CheckoutConfirmModal: React.FC<CheckoutConfirmModalProps> = ({
             <div>
               <h4 className="text-sm font-bold text-slate-900">{employee.name}</h4>
               <p className="text-xs text-slate-500">
-                Vào ca lúc: <span className="font-bold text-indigo-600">{shift.startTime}</span>
+                {t('actualCheckinTime')} <span className="font-bold text-indigo-600">{shift.startTime}</span>
               </p>
             </div>
           </div>
           <Badge variant="working" size="sm">
-            Đang làm
+            {t('statusWorking')}
           </Badge>
         </div>
 
@@ -174,7 +135,7 @@ export const CheckoutConfirmModal: React.FC<CheckoutConfirmModalProps> = ({
         <div className="py-1">
           <p className="text-xs font-bold text-center text-slate-700 uppercase tracking-wider mb-2 flex items-center justify-center gap-1.5">
             <Clock className="w-4 h-4 text-indigo-600" />
-            <span>Chỉnh giờ & phút tan ca (Cuộn bánh xe Apple)</span>
+            <span>{t('selectCheckoutApple')}</span>
           </p>
           <AppleTimePicker value={selectedEndTime} onChange={setSelectedEndTime} />
         </div>
@@ -186,7 +147,7 @@ export const CheckoutConfirmModal: React.FC<CheckoutConfirmModalProps> = ({
           <div className="flex items-center justify-between px-1">
             <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-              <span>Dự đoán giờ tan ca gần đây (Về tới nhà mới bấm):</span>
+              <span>{t('recentPredictions')}</span>
             </span>
             <button
               type="button"
@@ -194,7 +155,7 @@ export const CheckoutConfirmModal: React.FC<CheckoutConfirmModalProps> = ({
               className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 underline flex items-center gap-1"
             >
               <Clock className="w-3 h-3" />
-              <span>Hiện tại ({getCurrentTimeString()})</span>
+              <span>{language === 'zh' ? '当前' : 'Hiện tại'} ({getCurrentTimeString()})</span>
             </button>
           </div>
 
@@ -237,7 +198,7 @@ export const CheckoutConfirmModal: React.FC<CheckoutConfirmModalProps> = ({
                   }`}
                 >
                   <span className="text-xs tabular-nums block">{preset.time}</span>
-                  <span className="text-[9px] text-slate-500 block">{preset.badge}</span>
+                  <span className="text-[9px] text-slate-500 block">{t(preset.badgeKey)}</span>
                 </button>
               );
             })}
@@ -247,21 +208,21 @@ export const CheckoutConfirmModal: React.FC<CheckoutConfirmModalProps> = ({
         {/* Tóm tắt ca làm đơn giản */}
         <div className="p-3 rounded-[16px] bg-slate-50 border border-slate-200 space-y-1.5 text-xs">
           <div className="flex justify-between items-center">
-            <span className="text-slate-500">Khung giờ:</span>
+            <span className="text-slate-500">{t('selectedTimeRange')}</span>
             <span className="font-bold text-slate-900 tabular-nums">
               {shift.startTime} ➔ {selectedEndTime}
             </span>
           </div>
 
           <div className="flex justify-between items-center">
-            <span className="text-slate-500">Tổng thời gian:</span>
+            <span className="text-slate-500">{t('totalShiftDuration')}</span>
             <span className="text-sm font-black text-indigo-600 tabular-nums">
               {durationResult.isValid ? durationResult.formattedString : '--:--'}
             </span>
           </div>
 
           <div className="flex justify-between items-center">
-            <span className="text-slate-500">Tiền lương ước tính:</span>
+            <span className="text-slate-500">{t('estimatedSalary')}</span>
             <span className="text-sm font-bold text-emerald-600 tabular-nums">
               {formatCurrencyVND(estimatedPay)}
             </span>
@@ -270,7 +231,11 @@ export const CheckoutConfirmModal: React.FC<CheckoutConfirmModalProps> = ({
           {durationResult.isOvernight && (
             <div className="pt-1 text-[11px] font-bold text-amber-800 flex items-center gap-1">
               <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-              <span>Ca đêm qua 00:00 (Hệ thống đã tự động tính đúng)</span>
+              <span>
+                {language === 'zh'
+                  ? '跨夜班过0点（系统已自动精准核算）'
+                  : 'Ca đêm qua 00:00 (Hệ thống đã tự động tính đúng)'}
+              </span>
             </div>
           )}
 
@@ -285,8 +250,8 @@ export const CheckoutConfirmModal: React.FC<CheckoutConfirmModalProps> = ({
         {/* Ghi chú tùy chọn */}
         <div>
           <Input
-            label="Ghi chú (Tùy chọn)"
-            placeholder="Ví dụ: Đã dọn than xong, bàn giao ca..."
+            label={language === 'zh' ? '下班备注（选填）' : 'Ghi chú (Tùy chọn)'}
+            placeholder={t('checkoutNotePlaceholder')}
             value={note}
             onChange={(e) => setNote(e.target.value)}
             leftIcon={<FileText className="w-4 h-4" />}
@@ -302,7 +267,7 @@ export const CheckoutConfirmModal: React.FC<CheckoutConfirmModalProps> = ({
             leftIcon={<RotateCcw className="w-4 h-4" />}
             onClick={onClose}
           >
-            Chọn lại
+            {t('btnEditAgain')}
           </Button>
 
           <Button
@@ -314,7 +279,7 @@ export const CheckoutConfirmModal: React.FC<CheckoutConfirmModalProps> = ({
             onClick={() => onConfirmCheckout(selectedEndTime, note.trim() || undefined)}
             className="shadow-rose-500/25 py-3 font-bold text-base"
           >
-            XÁC NHẬN TAN CA
+            {t('btnConfirmCheckoutNow')}
           </Button>
         </div>
       </div>

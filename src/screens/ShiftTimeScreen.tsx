@@ -20,9 +20,10 @@ import {
 } from 'lucide-react';
 import {
   calculateShiftDuration,
-  formatVietnameseDate,
+  formatDisplayDate,
   getCurrentTimeString,
 } from '../utils/time';
+import { useTranslation } from '../i18n/translations';
 
 interface ShiftTimeScreenProps {
   employee: Employee;
@@ -53,6 +54,7 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
   onFastCheckOut,
 }) => {
   const { isNightMode } = useStore();
+  const { t, language } = useTranslation();
 
   // Realtime clock
   const [currentTime, setCurrentTime] = useState<string>('');
@@ -88,13 +90,17 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
         const diff = Math.max(0, currentTotalMinutes - startTotalMinutes);
         const eh = Math.floor(diff / 60);
         const em = diff % 60;
-        setElapsedString(`${eh} giờ ${em} phút ${s} giây`);
+        setElapsedString(
+          language === 'zh'
+            ? `${eh} 小时 ${em} 分 ${s} 秒`
+            : `${eh} giờ ${em} phút ${s} giây`
+        );
       }
     };
     updateTime();
     const interval = setInterval(updateTime, 1000);
     return () => clearInterval(interval);
-  }, [existingShift]);
+  }, [existingShift, language]);
 
   // Form states
   const isCurrentlyWorking = existingShift?.status === 'working';
@@ -155,18 +161,18 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
           }`}
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Chọn nhân viên khác</span>
+          <span>{t('changeEmployeeBtn')}</span>
         </button>
 
         {isNightMode ? (
           <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-indigo-950/90 text-amber-300 border border-indigo-700/60 shadow-sm animate-pulse">
             <Moon className="w-3.5 h-3.5 fill-amber-300/40" />
-            <span>Mở ca sáng đèn</span>
+            <span>{t('nightModeShiftBadge')}</span>
           </span>
         ) : (
           <span className="text-xs text-slate-500 font-medium flex items-center gap-1">
             <Calendar className="w-3.5 h-3.5" />
-            <span>{formatVietnameseDate()}</span>
+            <span>{formatDisplayDate(language)}</span>
           </span>
         )}
       </div>
@@ -196,7 +202,7 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
               </h2>
               {employee.isAdmin && (
                 <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-amber-400/20 text-amber-300 border border-amber-400/40">
-                  Admin
+                  {t('adminBadge')}
                 </span>
               )}
             </div>
@@ -204,7 +210,7 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
               {employee.role} • {employee.department}
             </p>
             <p className={`text-xs font-semibold mt-1 ${isNightMode ? 'text-amber-400' : 'text-indigo-600'}`}>
-              Đơn giá: {new Intl.NumberFormat('vi-VN').format(employee.hourlyRate)} đ/giờ
+              {t('hourlyRateLabel')}: {new Intl.NumberFormat('vi-VN').format(employee.hourlyRate)} {t('perHour')}
             </p>
           </div>
         </div>
@@ -218,20 +224,24 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
           {/* Status banner */}
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-100/90 border border-amber-300 text-amber-900 text-xs font-bold shadow-sm">
             <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping" />
-            <span>Đang trong ca làm việc từ lúc {existingShift.startTime}</span>
+            <span>
+              {language === 'zh'
+                ? `在岗工作中，上班自 ${existingShift.startTime}`
+                : `Đang trong ca làm việc từ lúc ${existingShift.startTime}`}
+            </span>
           </div>
 
           {/* Running time counter */}
           <div className="bg-slate-900 rounded-[20px] p-4 text-white shadow-xl max-w-sm mx-auto border border-slate-800">
             <p className="text-[11px] text-slate-400 uppercase tracking-widest font-semibold flex items-center justify-center gap-1.5 mb-1">
               <Clock className="w-3.5 h-3.5 text-indigo-400" />
-              <span>Thời gian làm việc đã trôi qua</span>
+              <span>{t('elapsedWorkTime')}</span>
             </p>
             <p className="text-2xl sm:text-3xl font-black text-amber-300 tabular-nums tracking-tight">
-              {elapsedString || 'Đang cập nhật...'}
+              {elapsedString || (language === 'zh' ? '正在计算...' : 'Đang cập nhật...')}
             </p>
             <p className="text-[11px] text-slate-400 mt-1">
-              Bắt đầu: {existingShift.startTime} • Giờ hiện tại: {currentTime}:{currentSeconds}
+              {t('startedAt')}: {existingShift.startTime} • {t('currentTimeLabel')}: {currentTime}:{currentSeconds}
             </p>
           </div>
 
@@ -250,17 +260,17 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
                 </div>
                 <div className="text-center px-2">
                   <span className="block text-xl sm:text-2xl font-black tracking-wide uppercase drop-shadow-md">
-                    BẤM TAN CA
+                    {t('btnGiantCheckout')}
                   </span>
                   <span className="block text-[11px] sm:text-xs text-rose-100 font-semibold tracking-normal mt-0.5 opacity-90">
-                    Chạm vào đây khi làm xong
+                    {t('checkoutHint')}
                   </span>
                 </div>
               </button>
             </div>
 
             <p className="text-xs text-slate-500 mt-4 max-w-xs text-center font-medium">
-              Chạm nút siêu to trên để kết thúc ca làm, chọn giờ tan ca (Top 1: 0h, Top 2: 1h...) và chốt giờ làm
+              {t('checkoutSubtext')}
             </p>
           </div>
         </div>
@@ -274,7 +284,7 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
             <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none" />
             <p className="text-[11px] text-slate-400 uppercase tracking-widest font-semibold flex items-center justify-center gap-1.5 mb-0.5">
               <Clock className="w-3.5 h-3.5 text-indigo-400" />
-              <span>Thời gian hiện tại</span>
+              <span>{t('currentTimeLabel')}</span>
             </p>
             <div className="flex items-baseline justify-center gap-1 tabular-nums font-extrabold text-3xl sm:text-4xl text-white tracking-tight mb-3">
               <span>{currentTime || '00:00'}</span>
@@ -296,13 +306,13 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
               }`}
             >
               {isNightMode
-                ? `BẮT ĐẦU VÀO CA LÚC ${currentTime} (MỞ CỬA QUÁN)`
-                : `BẮT ĐẦU VÀO CA LÚC ${currentTime}`}
+                ? t('btnStartWorkingWake', { time: currentTime })
+                : `${t('btnStartWorkingNow')} ${currentTime}`}
             </Button>
             <p className="text-[11px] text-slate-400 mt-1.5">
               {isNightMode
-                ? 'Nhấn vào đây để mở cửa nhà hàng và bắt đầu tính giờ ca đầu tiên'
-                : 'Nhấn vào đây để bắt đầu tính giờ làm ngay bây giờ'}
+                ? t('startWorkingWakeHint')
+                : t('startWorkingHint')}
             </p>
           </div>
 
@@ -317,9 +327,9 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
                 isNightMode ? 'text-amber-300' : 'text-slate-800'
               }`}>
                 <Zap className="w-4 h-4 text-amber-500 fill-amber-400" />
-                <span>Chọn ca nhanh theo giờ làm quán nướng:</span>
+                <span>{t('quickDurationTitle')}</span>
               </span>
-              <span className={`text-[11px] font-bold ${isNightMode ? 'text-indigo-400' : 'text-indigo-600'}`}>1 chạm chốt ca</span>
+              <span className={`text-[11px] font-bold ${isNightMode ? 'text-indigo-400' : 'text-indigo-600'}`}>{t('oneTouchDone')}</span>
             </div>
 
             <div className="grid grid-cols-3 gap-2.5">
@@ -337,8 +347,8 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
                     : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-800 shadow-2xs'
                 }`}
               >
-                <span className={`text-base font-black tabular-nums ${isNightMode ? 'text-indigo-300' : 'text-indigo-600'}`}>Ca 3h</span>
-                <span className="text-[10px] text-slate-400 font-medium mt-0.5">3 tiếng</span>
+                <span className={`text-base font-black tabular-nums ${isNightMode ? 'text-indigo-300' : 'text-indigo-600'}`}>{t('shift3h')}</span>
+                <span className="text-[10px] text-slate-400 font-medium mt-0.5">{t('shift3hDesc')}</span>
                 {durationResult.totalMinutes === 180 && (
                   <CheckCircle2 className="w-3.5 h-3.5 text-indigo-400 mt-1" />
                 )}
@@ -358,8 +368,8 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
                     : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-800 shadow-2xs'
                 }`}
               >
-                <span className={`text-base font-black tabular-nums ${isNightMode ? 'text-amber-400' : 'text-amber-600'}`}>Ca 4h</span>
-                <span className="text-[10px] text-slate-400 font-medium mt-0.5">4 tiếng (Chuẩn)</span>
+                <span className={`text-base font-black tabular-nums ${isNightMode ? 'text-amber-400' : 'text-amber-600'}`}>{t('shift4h')}</span>
+                <span className="text-[10px] text-slate-400 font-medium mt-0.5">{t('shift4hDesc')}</span>
                 {durationResult.totalMinutes === 240 && (
                   <CheckCircle2 className="w-3.5 h-3.5 text-amber-400 mt-1" />
                 )}
@@ -379,8 +389,8 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
                     : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-800 shadow-2xs'
                 }`}
               >
-                <span className={`text-base font-black tabular-nums ${isNightMode ? 'text-emerald-400' : 'text-emerald-600'}`}>Ca 5h</span>
-                <span className="text-[10px] text-slate-400 font-medium mt-0.5">5 tiếng (Tăng ca)</span>
+                <span className={`text-base font-black tabular-nums ${isNightMode ? 'text-emerald-400' : 'text-emerald-600'}`}>{t('shift5h')}</span>
+                <span className="text-[10px] text-slate-400 font-medium mt-0.5">{t('shift5hDesc')}</span>
                 {durationResult.totalMinutes === 300 && (
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 mt-1" />
                 )}
@@ -395,10 +405,10 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
             <div className="flex items-center justify-between pb-2 border-b border-slate-800">
               <span className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
                 <Clock className="w-4 h-4 text-indigo-400" />
-                <span>Đồng hồ cuộn Apple</span>
+                <span>{t('appleClockTitle')}</span>
               </span>
               <span className="text-[11px] text-amber-300 font-semibold">
-                Vuốt cuộn giờ & phút
+                {t('appleClockHint')}
               </span>
             </div>
 
@@ -413,7 +423,7 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
-                <span className="text-[10px] uppercase tracking-wider opacity-80">Giờ vào làm</span>
+                <span className="text-[10px] uppercase tracking-wider opacity-80">{t('tabStartTime')}</span>
                 <span className="text-base font-black tabular-nums">{startTime}</span>
               </button>
 
@@ -426,7 +436,7 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
-                <span className="text-[10px] uppercase tracking-wider opacity-80">Giờ tan ca</span>
+                <span className="text-[10px] uppercase tracking-wider opacity-80">{t('tabEndTime')}</span>
                 <span className="text-base font-black tabular-nums">{endTime}</span>
               </button>
             </div>
@@ -436,14 +446,16 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
               {activeTimeField === 'start' ? (
                 <div>
                   <p className="text-[11px] text-slate-400 text-center mb-1">
-                    Đang chỉnh: <span className="font-bold text-indigo-300">Giờ bắt đầu vào làm</span>
+                    {language === 'zh' ? '正在调节：' : 'Đang chỉnh: '}
+                    <span className="font-bold text-indigo-300">{t('tabStartTime')}</span>
                   </p>
                   <AppleTimePicker value={startTime} onChange={setStartTime} />
                 </div>
               ) : (
                 <div>
                   <p className="text-[11px] text-slate-400 text-center mb-1">
-                    Đang chỉnh: <span className="font-bold text-amber-300">Giờ tan ca</span>
+                    {language === 'zh' ? '正在调节：' : 'Đang chỉnh: '}
+                    <span className="font-bold text-amber-300">{t('tabEndTime')}</span>
                   </p>
                   <AppleTimePicker value={endTime} onChange={setEndTime} />
                 </div>
@@ -460,24 +472,24 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
                 }}
                 className="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 hover:text-white text-[11px] font-semibold"
               >
-                Vào: Bây giờ ({currentTime})
+                {t('quickCheckInNow')} ({currentTime})
               </button>
               <div className="flex gap-1">
-                {['00:00', '01:00', '02:00', '23:00'].map((t) => (
+                {['00:00', '01:00', '02:00', '23:00'].map((presetTime) => (
                   <button
-                    key={t}
+                    key={presetTime}
                     type="button"
                     onClick={() => {
-                      setEndTime(t);
+                      setEndTime(presetTime);
                       setActiveTimeField('end');
                     }}
                     className={`px-2 py-0.5 rounded-lg text-[10px] font-bold tabular-nums ${
-                      endTime === t
+                      endTime === presetTime
                         ? 'bg-amber-400 text-slate-900'
                         : 'bg-slate-800 text-slate-400 hover:text-white'
                     }`}
                   >
-                    {t}
+                    {presetTime}
                   </button>
                 ))}
               </div>
@@ -493,20 +505,20 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
                   : 'bg-white border-indigo-200/90 text-slate-800'
               }`}>
                 <div>
-                  <p className={`text-xs font-medium ${isNightMode ? 'text-slate-400' : 'text-slate-500'}`}>Tổng thời gian ca làm:</p>
+                  <p className={`text-xs font-medium ${isNightMode ? 'text-slate-400' : 'text-slate-500'}`}>{t('totalShiftDuration')}</p>
                   <p className={`text-xl font-black tabular-nums ${isNightMode ? 'text-amber-400' : 'text-indigo-600'}`}>
                     {durationResult.formattedString}
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-[11px] text-slate-400 font-medium">Khung giờ đã chọn:</p>
+                  <p className="text-[11px] text-slate-400 font-medium">{t('selectedTimeRange')}</p>
                   <p className={`text-xs font-bold tabular-nums ${isNightMode ? 'text-slate-200' : 'text-slate-800'}`}>
                     {startTime} ➔ {endTime}
                   </p>
                   {durationResult.isOvernight && (
                     <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30 mt-1">
                       <AlertTriangle className="w-3 h-3 text-amber-400" />
-                      <span>Ca qua đêm (+24h)</span>
+                      <span>{t('overnightShiftBadge')}</span>
                     </span>
                   )}
                 </div>
@@ -522,8 +534,8 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
           {/* Optional Note */}
           <div>
             <Input
-              label="Ghi chú ca làm (Tùy chọn)"
-              placeholder="Ví dụ: Tăng ca tối, đổi ca cho bạn..."
+              label={t('shiftNoteLabel')}
+              placeholder={t('shiftNotePlaceholder')}
               value={note}
               onChange={(e) => setNote(e.target.value)}
               leftIcon={<FileText className="w-4 h-4" />}
@@ -545,12 +557,12 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
                   : 'shadow-indigo-500/25'
               }`}
             >
-              {isNightMode ? 'TIẾP TỤC XÁC NHẬN (MỞ CỬA QUÁN) →' : 'TIẾP TỤC XÁC NHẬN →'}
+              {isNightMode ? t('btnContinueToConfirmWake') : t('btnContinueToConfirm')}
             </Button>
             <p className="text-[11px] text-center text-slate-400 mt-2">
               {isNightMode
-                ? 'Kiểm tra thông tin trước khi xác nhận mở cửa hoạt động ca làm'
-                : 'Xem lại thông tin và xác nhận ca làm ở bước tiếp theo'}
+                ? t('continueWakeHint')
+                : t('continueHint')}
             </p>
           </div>
         </div>

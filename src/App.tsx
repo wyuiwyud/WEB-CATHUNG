@@ -8,8 +8,12 @@ import { ConfirmShiftModal, type ConfirmShiftData } from './screens/ConfirmShift
 import { LiveBoardScreen } from './screens/LiveBoardScreen';
 import { AdminDashboardModal } from './screens/AdminDashboardModal';
 
+import { LanguageToggle } from './components/LanguageToggle';
+import { useTranslation } from './i18n/translations';
+
 function TimeTrackApp() {
   const toast = useToast();
+  const { t, language } = useTranslation();
   const {
     currentEmployee,
     currentScreen,
@@ -76,8 +80,8 @@ function TimeTrackApp() {
       setConfirmData(null);
       toast.success(
         isNightMode
-          ? `☀️ Nhà hàng bừng sáng! Chấm công thành công cho ${currentEmployee.name}!`
-          : `Chấm công thành công cho ${currentEmployee.name}!`
+          ? t('toastCheckinWakeSuccess', { name: currentEmployee.name })
+          : t('toastCheckinSuccess', { name: currentEmployee.name })
       );
       // Đóng menu và chuyển sang hiển thị Bảng giờ làm các thành viên khác
       setScreen('live-board');
@@ -94,7 +98,7 @@ function TimeTrackApp() {
     if (res.success) {
       toast.success(
         wasNight
-          ? `☀️ Nhà hàng bừng sáng hoạt động! ${res.message}`
+          ? t('toastFastCheckinWake', { msg: res.message })
           : res.message
       );
       setScreen('live-board');
@@ -114,7 +118,6 @@ function TimeTrackApp() {
     }
   };
 
-
   const currentTodayShift = currentEmployee
     ? getEmployeeTodayShift(currentEmployee.id)
     : undefined;
@@ -125,6 +128,17 @@ function TimeTrackApp() {
         isNightMode ? 'bg-[#070A14] text-slate-100' : 'bg-[#F1F5F9] text-[#0F172A]'
       }`}
     >
+      {/* 🇻🇳🇨🇳 CÔNG TẮC ĐỔI NGÔN NGỮ VIỆT - TRUNG PHÍA TRÊN */}
+      <div className="w-full max-w-2xl mx-auto pt-3 px-4 sm:px-6 flex items-center justify-between">
+        <div className="flex items-center gap-1.5 text-xs font-bold opacity-80 select-none">
+          <span className="text-sm">🍢</span>
+          <span className={isNightMode ? 'text-amber-300' : 'text-slate-700'}>
+            {language === 'zh' ? '吉兴烧烤 • 员工考勤' : 'Cát Hưng • Chấm công'}
+          </span>
+        </div>
+        <LanguageToggle />
+      </div>
+
       {/* SCREEN 1: Menu chọn nhân viên */}
       {currentScreen === 'select-employee' && (
         <SelectEmployeeScreen
