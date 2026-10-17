@@ -10,8 +10,11 @@ import {
   Users,
   Search,
   Coffee,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import { formatVietnameseDate, formatDuration } from '../utils/time';
+import { NightRestaurantAnimation } from '../components/NightRestaurantAnimation';
 
 interface LiveBoardScreenProps {
   onOpenAdmin: () => void;
@@ -51,6 +54,16 @@ export const LiveBoardScreen: React.FC<LiveBoardScreenProps> = ({
     return { totalStaff, working, completed, notStarted };
   }, [employees, combinedList]);
 
+  // Tổng thời gian làm việc đã hoàn thành hôm nay
+  const totalCompletedMinutes = useMemo(() => {
+    return shifts
+      .filter((s) => s.status === 'completed')
+      .reduce((sum, s) => sum + (s.totalMinutes || 0), 0);
+  }, [shifts]);
+
+  // Trạng thái: Người cuối cùng đã tan ca hết (working === 0 & completed > 0)
+  const isAllOffDuty = kpis.working === 0 && kpis.completed > 0;
+
   // Filtered and sorted list: working first -> completed next -> not_started last
   const sortedAndFilteredList = useMemo(() => {
     let result = [...combinedList];
@@ -81,21 +94,41 @@ export const LiveBoardScreen: React.FC<LiveBoardScreenProps> = ({
   }, [combinedList, searchQuery, statusFilter]);
 
   return (
-    <div className="w-full max-w-2xl mx-auto pb-16 pt-3 px-4 sm:px-6">
+    <div className={`w-full max-w-2xl mx-auto pb-20 pt-3 px-4 sm:px-6 transition-colors duration-1000 ${
+      isAllOffDuty ? 'text-slate-100' : 'text-slate-900'
+    }`}>
       {/* Top Header with Restaurant Name and Admin Button */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 mb-5 pb-4 border-b border-slate-200">
+      <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 mb-5 pb-4 border-b transition-colors duration-1000 ${
+        isAllOffDuty ? 'border-slate-800' : 'border-slate-200'
+      }`}>
         <div>
           <div className="flex items-center gap-2">
-            <span className="p-1 rounded-md bg-orange-100 text-orange-600">
+            <span className={`p-1.5 rounded-lg transition-colors ${
+              isAllOffDuty ? 'bg-orange-500/20 text-orange-400' : 'bg-orange-100 text-orange-600'
+            }`}>
               <Flame className="w-4 h-4 fill-orange-500" />
             </span>
-            <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+            <h1 className={`text-xl sm:text-2xl font-black tracking-tight ${
+              isAllOffDuty ? 'text-white' : 'text-slate-900'
+            }`}>
               Cát Hưng Xiên Nướng
             </h1>
+            {isAllOffDuty && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-indigo-950/80 text-amber-300 border border-indigo-700/60 shadow-sm animate-pulse">
+                <Moon className="w-3 h-3 text-amber-300 fill-amber-300/40" />
+                <span>Nghỉ Đêm</span>
+              </span>
+            )}
           </div>
-          <p className="text-xs text-slate-500 mt-1 flex items-center gap-1.5 font-medium">
-            <Clock className="w-3.5 h-3.5 text-indigo-500" />
-            <span>Bảng giờ làm — {formatVietnameseDate()}</span>
+          <p className={`text-xs mt-1 flex items-center gap-1.5 font-medium ${
+            isAllOffDuty ? 'text-slate-400' : 'text-slate-500'
+          }`}>
+            <Clock className={`w-3.5 h-3.5 ${isAllOffDuty ? 'text-amber-400' : 'text-indigo-500'}`} />
+            <span>
+              {isAllOffDuty
+                ? `Đêm khuya — Toàn bộ ca đã kết thúc (${formatVietnameseDate()})`
+                : `Bảng giờ làm — ${formatVietnameseDate()}`}
+            </span>
           </p>
         </div>
 
@@ -115,56 +148,85 @@ export const LiveBoardScreen: React.FC<LiveBoardScreenProps> = ({
 
           <Button
             type="button"
-            variant="secondary"
+            variant={isAllOffDuty ? 'primary' : 'secondary'}
             size="sm"
-            leftIcon={<UserPlus className="w-4 h-4 text-indigo-600" />}
+            leftIcon={isAllOffDuty ? <Sun className="w-4 h-4 text-slate-950 fill-slate-950/20" /> : <UserPlus className="w-4 h-4 text-indigo-600" />}
             onClick={onNewCheckIn}
-            className="border-indigo-200 text-indigo-700 bg-indigo-50/60 hover:bg-indigo-100"
+            className={
+              isAllOffDuty
+                ? 'bg-gradient-to-r from-amber-400 to-orange-400 text-slate-950 font-black border-amber-300 hover:from-amber-300 hover:to-orange-300 shadow-md'
+                : 'border-indigo-200 text-indigo-700 bg-indigo-50/60 hover:bg-indigo-100'
+            }
           >
-            Chấm công tiếp
+            {isAllOffDuty ? 'Mở cửa quán' : 'Chấm công tiếp'}
           </Button>
         </div>
       </div>
 
+      {/* BANNER HOẠT HÌNH MÀN ĐÊM KHI TOÀN BỘ THÀNH VIÊN TAN CA */}
+      {isAllOffDuty && (
+        <NightRestaurantAnimation
+          onStartNewShift={onNewCheckIn}
+          completedCount={kpis.completed}
+          totalHoursFormatted={formatDuration(totalCompletedMinutes)}
+        />
+      )}
+
       {/* 4 KPI Cards (Bỏ tính năng duyệt) */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-5">
-        <div className="p-3 bg-white rounded-[18px] border border-slate-200 shadow-sm flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-[12px] bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-sm">
-            <Users className="w-4 h-4 text-slate-600" />
+        <div className={`p-3 rounded-[18px] border shadow-sm flex items-center gap-2.5 transition-colors duration-700 ${
+          isAllOffDuty ? 'bg-slate-900/85 border-slate-800' : 'bg-white border-slate-200'
+        }`}>
+          <div className={`w-9 h-9 rounded-[12px] flex items-center justify-center font-bold text-sm ${
+            isAllOffDuty ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-700'
+          }`}>
+            <Users className="w-4 h-4" />
           </div>
           <div>
-            <p className="text-[11px] text-slate-500 font-semibold">Tổng nhân sự</p>
-            <p className="text-lg font-black text-slate-900 tabular-nums">{kpis.totalStaff}</p>
+            <p className={`text-[11px] font-semibold ${isAllOffDuty ? 'text-slate-400' : 'text-slate-500'}`}>Tổng nhân sự</p>
+            <p className={`text-lg font-black tabular-nums ${isAllOffDuty ? 'text-white' : 'text-slate-900'}`}>{kpis.totalStaff}</p>
           </div>
         </div>
 
-        <div className="p-3 bg-white rounded-[18px] border border-amber-200 shadow-sm flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-[12px] bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-sm">
-            <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping" />
+        <div className={`p-3 rounded-[18px] border shadow-sm flex items-center gap-2.5 transition-colors duration-700 ${
+          isAllOffDuty ? 'bg-slate-900/85 border-amber-900/40' : 'bg-white border-amber-200'
+        }`}>
+          <div className={`w-9 h-9 rounded-[12px] flex items-center justify-center font-bold text-sm ${
+            isAllOffDuty ? 'bg-amber-950/80 text-amber-400' : 'bg-amber-100 text-amber-700'
+          }`}>
+            <span className={`w-2.5 h-2.5 rounded-full ${isAllOffDuty ? 'bg-amber-400' : 'bg-amber-500 animate-ping'}`} />
           </div>
           <div>
-            <p className="text-[11px] text-amber-800 font-semibold">Đang trong ca</p>
-            <p className="text-lg font-black text-amber-900 tabular-nums">{kpis.working}</p>
+            <p className={`text-[11px] font-semibold ${isAllOffDuty ? 'text-amber-300/80' : 'text-amber-800'}`}>Đang trong ca</p>
+            <p className={`text-lg font-black tabular-nums ${isAllOffDuty ? 'text-amber-300' : 'text-amber-900'}`}>{kpis.working}</p>
           </div>
         </div>
 
-        <div className="p-3 bg-white rounded-[18px] border border-emerald-200 shadow-sm flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-[12px] bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+        <div className={`p-3 rounded-[18px] border shadow-sm flex items-center gap-2.5 transition-colors duration-700 ${
+          isAllOffDuty ? 'bg-slate-900/85 border-emerald-900/40' : 'bg-white border-emerald-200'
+        }`}>
+          <div className={`w-9 h-9 rounded-[12px] flex items-center justify-center font-bold text-sm ${
+            isAllOffDuty ? 'bg-emerald-950/80 text-emerald-400' : 'bg-emerald-100 text-emerald-700'
+          }`}>
+            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
           </div>
           <div>
-            <p className="text-[11px] text-emerald-800 font-semibold">Đã hoàn thành</p>
-            <p className="text-lg font-black text-emerald-900 tabular-nums">{kpis.completed}</p>
+            <p className={`text-[11px] font-semibold ${isAllOffDuty ? 'text-emerald-300/80' : 'text-emerald-800'}`}>Đã hoàn thành</p>
+            <p className={`text-lg font-black tabular-nums ${isAllOffDuty ? 'text-emerald-400' : 'text-emerald-900'}`}>{kpis.completed}</p>
           </div>
         </div>
 
-        <div className="p-3 bg-white rounded-[18px] border border-slate-200 shadow-sm flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-[12px] bg-slate-100 text-slate-500 flex items-center justify-center font-bold text-sm">
-            <Coffee className="w-4 h-4 text-slate-500" />
+        <div className={`p-3 rounded-[18px] border shadow-sm flex items-center gap-2.5 transition-colors duration-700 ${
+          isAllOffDuty ? 'bg-slate-900/85 border-slate-800' : 'bg-white border-slate-200'
+        }`}>
+          <div className={`w-9 h-9 rounded-[12px] flex items-center justify-center font-bold text-sm ${
+            isAllOffDuty ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-500'
+          }`}>
+            <Coffee className="w-4 h-4" />
           </div>
           <div>
-            <p className="text-[11px] text-slate-500 font-semibold">Chưa vào ca</p>
-            <p className="text-lg font-black text-slate-700 tabular-nums">{kpis.notStarted}</p>
+            <p className={`text-[11px] font-semibold ${isAllOffDuty ? 'text-slate-400' : 'text-slate-500'}`}>Chưa vào ca</p>
+            <p className={`text-lg font-black tabular-nums ${isAllOffDuty ? 'text-slate-400' : 'text-slate-700'}`}>{kpis.notStarted}</p>
           </div>
         </div>
       </div>
@@ -173,13 +235,19 @@ export const LiveBoardScreen: React.FC<LiveBoardScreenProps> = ({
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 mb-4">
         {/* Search */}
         <div className="relative flex-1">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search className={`w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 ${
+            isAllOffDuty ? 'text-slate-500' : 'text-slate-400'
+          }`} />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Tìm theo tên thành viên..."
-            className="w-full min-h-[42px] pl-10 pr-3 rounded-[14px] bg-white border border-slate-200 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-indigo-500"
+            className={`w-full min-h-[42px] pl-10 pr-3 rounded-[14px] border text-xs focus:outline-none transition-colors ${
+              isAllOffDuty
+                ? 'bg-slate-900/90 border-slate-800 text-white placeholder:text-slate-500 focus:border-amber-500'
+                : 'bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-indigo-500'
+            }`}
           />
         </div>
 
@@ -189,8 +257,8 @@ export const LiveBoardScreen: React.FC<LiveBoardScreenProps> = ({
             onClick={() => setStatusFilter('all')}
             className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
               statusFilter === 'all'
-                ? 'bg-slate-900 text-white'
-                : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                ? isAllOffDuty ? 'bg-amber-500 text-slate-950 font-black' : 'bg-slate-900 text-white'
+                : isAllOffDuty ? 'bg-slate-900/90 border border-slate-800 text-slate-400 hover:text-white' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
             }`}
           >
             Tất cả ({employees.length})
@@ -200,7 +268,7 @@ export const LiveBoardScreen: React.FC<LiveBoardScreenProps> = ({
             className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
               statusFilter === 'working'
                 ? 'bg-amber-500 text-white'
-                : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                : isAllOffDuty ? 'bg-slate-900/90 border border-slate-800 text-slate-400 hover:text-white' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
             }`}
           >
             Đang làm ({kpis.working})
@@ -210,7 +278,7 @@ export const LiveBoardScreen: React.FC<LiveBoardScreenProps> = ({
             className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
               statusFilter === 'completed'
                 ? 'bg-emerald-600 text-white'
-                : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                : isAllOffDuty ? 'bg-slate-900/90 border border-slate-800 text-slate-400 hover:text-white' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
             }`}
           >
             Đã hoàn thành ({kpis.completed})
@@ -220,7 +288,7 @@ export const LiveBoardScreen: React.FC<LiveBoardScreenProps> = ({
             className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
               statusFilter === 'not_started'
                 ? 'bg-slate-600 text-white'
-                : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                : isAllOffDuty ? 'bg-slate-900/90 border border-slate-800 text-slate-400 hover:text-white' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
             }`}
           >
             Chưa vào ca ({kpis.notStarted})
@@ -237,10 +305,14 @@ export const LiveBoardScreen: React.FC<LiveBoardScreenProps> = ({
             <Card
               key={employee.id}
               padding="sm"
-              className={`transition-all rounded-[18px] border-slate-200/90 ${
+              className={`transition-all rounded-[18px] ${
+                isAllOffDuty
+                  ? 'bg-slate-900/85 border-slate-800 text-slate-100 shadow-md hover:border-slate-700'
+                  : 'bg-white border-slate-200/90 text-slate-900 shadow-sm'
+              } ${
                 isNewlyAdded
                   ? 'animate-flash-green ring-2 ring-emerald-400 bg-emerald-50/20'
-                  : 'bg-white'
+                  : ''
               }`}
             >
               <div className="flex items-center justify-between gap-3">
@@ -254,16 +326,20 @@ export const LiveBoardScreen: React.FC<LiveBoardScreenProps> = ({
                   />
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <h3 className="font-bold text-slate-900 text-sm truncate">
+                      <h3 className={`font-bold text-sm truncate ${
+                        isAllOffDuty ? 'text-white' : 'text-slate-900'
+                      }`}>
                         {employee.name}
                       </h3>
                       {employee.isAdmin && (
-                        <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-amber-100 text-amber-800">
+                        <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-amber-400/20 text-amber-300 border border-amber-400/30">
                           Admin
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-slate-500 truncate mt-0.5">
+                    <p className={`text-xs truncate mt-0.5 ${
+                      isAllOffDuty ? 'text-slate-400' : 'text-slate-500'
+                    }`}>
                       {employee.role}
                     </p>
                   </div>
@@ -273,17 +349,23 @@ export const LiveBoardScreen: React.FC<LiveBoardScreenProps> = ({
                 <div className="text-right shrink-0">
                   {shift ? (
                     <div>
-                      <div className="text-xs font-bold text-slate-900 tabular-nums">
+                      <div className={`text-xs font-bold tabular-nums ${
+                        isAllOffDuty ? 'text-slate-200' : 'text-slate-900'
+                      }`}>
                         {shift.startTime} — {shift.endTime || 'Hiện tại'}
                       </div>
-                      <div className="text-[11px] font-semibold text-indigo-600 tabular-nums mt-0.5">
+                      <div className={`text-[11px] font-semibold tabular-nums mt-0.5 ${
+                        isAllOffDuty ? 'text-amber-400' : 'text-indigo-600'
+                      }`}>
                         {shift.totalMinutes > 0
                           ? `Tổng: ${formatDuration(shift.totalMinutes)}`
                           : 'Đang đếm giờ...'}
                       </div>
                     </div>
                   ) : (
-                    <span className="text-xs text-slate-400 italic">Chưa vào ca</span>
+                    <span className={`text-xs italic ${
+                      isAllOffDuty ? 'text-slate-600' : 'text-slate-400'
+                    }`}>Chưa vào ca</span>
                   )}
 
                   <div className="mt-1 flex justify-end">
@@ -306,7 +388,9 @@ export const LiveBoardScreen: React.FC<LiveBoardScreenProps> = ({
 
               {/* Note or extra detail if any */}
               {shift?.note && (
-                <div className="mt-2 pt-2 border-t border-slate-100 text-[11px] text-slate-500 italic">
+                <div className={`mt-2 pt-2 border-t text-[11px] italic ${
+                  isAllOffDuty ? 'border-slate-800 text-slate-400' : 'border-slate-100 text-slate-500'
+                }`}>
                   Ghi chú: "{shift.note}"
                 </div>
               )}
@@ -315,8 +399,10 @@ export const LiveBoardScreen: React.FC<LiveBoardScreenProps> = ({
         })}
 
         {sortedAndFilteredList.length === 0 && (
-          <div className="p-8 text-center bg-white rounded-[20px] border border-slate-200">
-            <p className="text-sm text-slate-500">Không có thành viên nào trong danh mục này</p>
+          <div className={`p-8 text-center rounded-[20px] border ${
+            isAllOffDuty ? 'bg-slate-900/80 border-slate-800 text-slate-400' : 'bg-white border-slate-200 text-slate-500'
+          }`}>
+            <p className="text-sm">Không có thành viên nào trong danh mục này</p>
           </div>
         )}
       </div>
@@ -328,11 +414,21 @@ export const LiveBoardScreen: React.FC<LiveBoardScreenProps> = ({
           variant="primary"
           size="lg"
           fullWidth
-          leftIcon={<UserPlus className="w-5 h-5" />}
+          leftIcon={
+            isAllOffDuty ? (
+              <Sun className="w-5 h-5 text-slate-950 fill-slate-950/20" />
+            ) : (
+              <UserPlus className="w-5 h-5" />
+            )
+          }
           onClick={onNewCheckIn}
-          className="shadow-[0_12px_28px_rgba(79,70,229,0.35)] py-3.5 text-base"
+          className={`py-3.5 text-base font-black transition-all ${
+            isAllOffDuty
+              ? 'bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 hover:from-amber-300 hover:to-orange-400 text-slate-950 border border-amber-300 shadow-[0_12px_28px_rgba(245,158,11,0.4)]'
+              : 'shadow-[0_12px_28px_rgba(79,70,229,0.35)]'
+          }`}
         >
-          CHẤM CÔNG THÊM THÀNH VIÊN
+          {isAllOffDuty ? 'MỞ CỬA QUÁN • CHẤM CÔNG MỚI' : 'CHẤM CÔNG THÊM THÀNH VIÊN'}
         </Button>
       </div>
     </div>

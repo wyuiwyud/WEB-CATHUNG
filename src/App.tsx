@@ -19,7 +19,14 @@ function TimeTrackApp() {
     startShift,
     endShift,
     saveDirectShift,
+    shifts,
   } = useStore();
+
+  // Khi người cuối cùng bấm tan ca (working === 0 & completed > 0), giao diện dần tối dần vào màn đêm
+  const isNightMode =
+    currentScreen === 'live-board' &&
+    shifts.some((s) => s.status === 'completed') &&
+    !shifts.some((s) => s.status === 'working');
 
   // State for confirm modal
   const [confirmData, setConfirmData] = useState<ConfirmShiftData | null>(null);
@@ -110,7 +117,11 @@ function TimeTrackApp() {
     : undefined;
 
   return (
-    <div className="min-h-screen bg-[#F1F5F9] text-[#0F172A] font-sans antialiased selection:bg-indigo-500 selection:text-white">
+    <div
+      className={`min-h-screen transition-colors duration-1000 font-sans antialiased selection:bg-indigo-500 selection:text-white ${
+        isNightMode ? 'bg-[#070A14] text-slate-100' : 'bg-[#F1F5F9] text-[#0F172A]'
+      }`}
+    >
       {/* SCREEN 1: Menu chọn nhân viên */}
       {currentScreen === 'select-employee' && (
         <SelectEmployeeScreen
