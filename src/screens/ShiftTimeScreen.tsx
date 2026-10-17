@@ -13,8 +13,6 @@ import {
   FileText,
   Calendar,
   LogOut,
-  Zap,
-  CheckCircle2,
   Sun,
   Moon,
 } from 'lucide-react';
@@ -123,16 +121,6 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
   const durationResult = useMemo(() => {
     return calculateShiftDuration(startTime, endTime);
   }, [startTime, endTime]);
-
-  // Quick shift duration helper: 3h, 4h, 5h
-  const applyQuickDuration = (hoursToAdd: number) => {
-    const [h, m] = startTime.split(':').map(Number);
-    const totalM = (h * 60 + (m || 0) + hoursToAdd * 60) % (24 * 60);
-    const endH = Math.floor(totalM / 60).toString().padStart(2, '0');
-    const endM = (totalM % 60).toString().padStart(2, '0');
-    setEndTime(`${endH}:${endM}`);
-    setActiveTimeField('end');
-  };
 
   const handleConfirmClick = () => {
     if (!durationResult.isValid) return;
@@ -314,88 +302,6 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
                 ? t('startWorkingWakeHint')
                 : t('startWorkingHint')}
             </p>
-          </div>
-
-          {/* ======================================================== */}
-          {/* ⚡ CHỌN CA NHANH: 3H, 4H, 5H (YÊU CẦU CỦA USER)        */}
-          {/* ======================================================== */}
-          <div className={`p-3.5 sm:p-4 rounded-[22px] border shadow-sm space-y-2.5 ${
-            isNightMode ? 'bg-slate-900/85 border-slate-800 text-slate-100' : 'bg-white border-indigo-100 text-slate-900'
-          }`}>
-            <div className="flex items-center justify-between">
-              <span className={`text-xs font-bold flex items-center gap-1.5 ${
-                isNightMode ? 'text-amber-300' : 'text-slate-800'
-              }`}>
-                <Zap className="w-4 h-4 text-amber-500 fill-amber-400" />
-                <span>{t('quickDurationTitle')}</span>
-              </span>
-              <span className={`text-[11px] font-bold ${isNightMode ? 'text-indigo-400' : 'text-indigo-600'}`}>{t('oneTouchDone')}</span>
-            </div>
-
-            <div className="grid grid-cols-3 gap-2.5">
-              {/* Ca 3h */}
-              <button
-                type="button"
-                onClick={() => applyQuickDuration(3)}
-                className={`py-3 px-2 rounded-[16px] border text-center transition-all active:scale-95 flex flex-col items-center justify-center ${
-                  durationResult.totalMinutes === 180
-                    ? isNightMode
-                      ? 'border-indigo-500 bg-indigo-950/90 text-white font-black ring-2 ring-indigo-400/40 shadow-sm'
-                      : 'border-indigo-600 bg-indigo-50/90 text-indigo-950 font-black ring-2 ring-indigo-500/25 shadow-sm'
-                    : isNightMode
-                    ? 'border-slate-800 bg-slate-900/80 hover:bg-slate-800 text-slate-200'
-                    : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-800 shadow-2xs'
-                }`}
-              >
-                <span className={`text-base font-black tabular-nums ${isNightMode ? 'text-indigo-300' : 'text-indigo-600'}`}>{t('shift3h')}</span>
-                <span className="text-[10px] text-slate-400 font-medium mt-0.5">{t('shift3hDesc')}</span>
-                {durationResult.totalMinutes === 180 && (
-                  <CheckCircle2 className="w-3.5 h-3.5 text-indigo-400 mt-1" />
-                )}
-              </button>
-
-              {/* Ca 4h */}
-              <button
-                type="button"
-                onClick={() => applyQuickDuration(4)}
-                className={`py-3 px-2 rounded-[16px] border text-center transition-all active:scale-95 flex flex-col items-center justify-center ${
-                  durationResult.totalMinutes === 240
-                    ? isNightMode
-                      ? 'border-amber-500 bg-amber-950/90 text-white font-black ring-2 ring-amber-400/40 shadow-sm'
-                      : 'border-indigo-600 bg-indigo-50/90 text-indigo-950 font-black ring-2 ring-indigo-500/25 shadow-sm'
-                    : isNightMode
-                    ? 'border-slate-800 bg-slate-900/80 hover:bg-slate-800 text-slate-200'
-                    : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-800 shadow-2xs'
-                }`}
-              >
-                <span className={`text-base font-black tabular-nums ${isNightMode ? 'text-amber-400' : 'text-amber-600'}`}>{t('shift4h')}</span>
-                <span className="text-[10px] text-slate-400 font-medium mt-0.5">{t('shift4hDesc')}</span>
-                {durationResult.totalMinutes === 240 && (
-                  <CheckCircle2 className="w-3.5 h-3.5 text-amber-400 mt-1" />
-                )}
-              </button>
-
-              {/* Ca 5h */}
-              <button
-                type="button"
-                onClick={() => applyQuickDuration(5)}
-                className={`py-3 px-2 rounded-[16px] border text-center transition-all active:scale-95 flex flex-col items-center justify-center ${
-                  durationResult.totalMinutes === 300
-                    ? isNightMode
-                      ? 'border-emerald-500 bg-emerald-950/90 text-white font-black ring-2 ring-emerald-400/40 shadow-sm'
-                      : 'border-indigo-600 bg-indigo-50/90 text-indigo-950 font-black ring-2 ring-indigo-500/25 shadow-sm'
-                    : isNightMode
-                    ? 'border-slate-800 bg-slate-900/80 hover:bg-slate-800 text-slate-200'
-                    : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-800 shadow-2xs'
-                }`}
-              >
-                <span className={`text-base font-black tabular-nums ${isNightMode ? 'text-emerald-400' : 'text-emerald-600'}`}>{t('shift5h')}</span>
-                <span className="text-[10px] text-slate-400 font-medium mt-0.5">{t('shift5hDesc')}</span>
-                {durationResult.totalMinutes === 300 && (
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 mt-1" />
-                )}
-              </button>
-            </div>
           </div>
 
           {/* ========================================================================= */}
