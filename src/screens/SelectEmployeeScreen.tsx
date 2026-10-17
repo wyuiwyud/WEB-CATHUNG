@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useStore } from '../store/useStore';
 import type { Employee } from '../types';
 import { Card, Avatar, Badge } from '../components/ui';
-import { Search, ChevronRight, Flame, Users, Calendar, ArrowRight } from 'lucide-react';
+import { Search, ChevronRight, Flame, Users, Calendar, ArrowRight, Moon } from 'lucide-react';
 import { formatVietnameseDate } from '../utils/time';
 
 interface SelectEmployeeScreenProps {
@@ -14,7 +14,7 @@ export const SelectEmployeeScreen: React.FC<SelectEmployeeScreenProps> = ({
   onSelectEmployee,
   onGoToLiveBoard,
 }) => {
-  const { employees, recentEmployeeIds, shifts } = useStore();
+  const { employees, recentEmployeeIds, shifts, isNightMode } = useStore();
   const [searchTerm, setSearchTerm] = useState('');
 
   // Filter employees by search term
@@ -45,18 +45,31 @@ export const SelectEmployeeScreen: React.FC<SelectEmployeeScreenProps> = ({
   };
 
   return (
-    <div className="w-full max-w-lg mx-auto pb-12 pt-4 px-4 sm:px-6">
+    <div className={`w-full max-w-lg mx-auto pb-12 pt-4 px-4 sm:px-6 transition-colors duration-1000 ${
+      isNightMode ? 'text-slate-100' : 'text-slate-900'
+    }`}>
       {/* Brand Header */}
       <div className="text-center mb-6 pt-2">
-        <div className="inline-flex items-center justify-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-100/80 border border-orange-200/80 text-orange-700 text-xs font-semibold mb-3 shadow-sm">
-          <Flame className="w-3.5 h-3.5 fill-orange-500 text-orange-600 animate-pulse" />
-          <span>Hệ thống Chấm công & Giờ làm</span>
-        </div>
+        {isNightMode ? (
+          <div className="inline-flex items-center justify-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-950/90 border border-indigo-700/60 text-amber-300 text-xs font-bold mb-3 shadow-md animate-pulse">
+            <Moon className="w-3.5 h-3.5 fill-amber-300/40 text-amber-300" />
+            <span>Màn đêm buông xuống • Chọn người mở ca để đánh thức quán</span>
+          </div>
+        ) : (
+          <div className="inline-flex items-center justify-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-100/80 border border-orange-200/80 text-orange-700 text-xs font-semibold mb-3 shadow-sm">
+            <Flame className="w-3.5 h-3.5 fill-orange-500 text-orange-600 animate-pulse" />
+            <span>Hệ thống Chấm công & Giờ làm</span>
+          </div>
+        )}
         
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0F172A] tracking-tight">
+        <h1 className={`text-2xl sm:text-3xl font-extrabold tracking-tight ${
+          isNightMode ? 'text-white' : 'text-[#0F172A]'
+        }`}>
           Cát Hưng Xiên Nướng
         </h1>
-        <p className="text-sm text-[#64748B] mt-1 flex items-center justify-center gap-1.5">
+        <p className={`text-sm mt-1 flex items-center justify-center gap-1.5 ${
+          isNightMode ? 'text-slate-400' : 'text-[#64748B]'
+        }`}>
           <Calendar className="w-4 h-4 text-slate-400" />
           <span>{formatVietnameseDate()}</span>
         </p>
@@ -66,18 +79,26 @@ export const SelectEmployeeScreen: React.FC<SelectEmployeeScreenProps> = ({
       <button
         type="button"
         onClick={onGoToLiveBoard}
-        className="w-full mb-5 p-3.5 bg-gradient-to-r from-indigo-50 to-blue-50 hover:from-indigo-100 hover:to-blue-100 border border-indigo-100 rounded-[18px] flex items-center justify-between text-left transition-all active:scale-[0.99] shadow-sm"
+        className={`w-full mb-5 p-3.5 rounded-[18px] flex items-center justify-between text-left transition-all active:scale-[0.99] shadow-sm ${
+          isNightMode
+            ? 'bg-slate-900/90 hover:bg-slate-850 border border-slate-800 text-slate-100'
+            : 'bg-gradient-to-r from-indigo-50 to-blue-50 hover:from-indigo-100 hover:to-blue-100 border border-indigo-100 text-slate-900'
+        }`}
       >
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center shadow-md shadow-indigo-500/20">
+          <div className={`w-10 h-10 rounded-full flex items-center justify-center shadow-md ${
+            isNightMode ? 'bg-indigo-600 text-white shadow-indigo-500/20' : 'bg-indigo-600 text-white shadow-indigo-500/20'
+          }`}>
             <Users className="w-5 h-5" />
           </div>
           <div>
-            <h4 className="text-sm font-bold text-slate-900">Xem Bảng Giờ Làm Hôm Nay</h4>
-            <p className="text-xs text-slate-500">Xem ai đang làm, ai đã tan ca & vào trang Admin</p>
+            <h4 className={`text-sm font-bold ${isNightMode ? 'text-white' : 'text-slate-900'}`}>Xem Bảng Giờ Làm Hôm Nay</h4>
+            <p className={`text-xs ${isNightMode ? 'text-slate-400' : 'text-slate-500'}`}>Xem ai đang làm, ai đã tan ca & vào trang Admin</p>
           </div>
         </div>
-        <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-indigo-600 shadow-sm">
+        <div className={`w-8 h-8 rounded-full flex items-center justify-center shadow-sm ${
+          isNightMode ? 'bg-slate-800 text-indigo-400' : 'bg-white text-indigo-600'
+        }`}>
           <ArrowRight className="w-4 h-4" />
         </div>
       </button>
@@ -92,12 +113,18 @@ export const SelectEmployeeScreen: React.FC<SelectEmployeeScreenProps> = ({
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           placeholder="Tìm tên nhân viên, vị trí (nướng, thu ngân...)"
-          className="w-full min-h-[48px] pl-11 pr-4 py-2.5 rounded-[16px] bg-white border border-[#E2E8F0] text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all shadow-sm"
+          className={`w-full min-h-[48px] pl-11 pr-4 py-2.5 rounded-[16px] text-sm placeholder:text-slate-400 focus:outline-none transition-all shadow-sm ${
+            isNightMode
+              ? 'bg-slate-900/90 border border-slate-800 text-white focus:border-amber-400 focus:ring-2 focus:ring-amber-500/20'
+              : 'bg-white border border-[#E2E8F0] text-slate-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20'
+          }`}
         />
         {searchTerm && (
           <button
             onClick={() => setSearchTerm('')}
-            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-400 hover:text-slate-600 bg-slate-100 px-2 py-1 rounded-full"
+            className={`absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-semibold px-2 py-1 rounded-full ${
+              isNightMode ? 'text-slate-300 bg-slate-800' : 'text-slate-400 bg-slate-100'
+            }`}
           >
             Xóa
           </button>
@@ -108,7 +135,9 @@ export const SelectEmployeeScreen: React.FC<SelectEmployeeScreenProps> = ({
       {recentEmployees.length > 0 && !searchTerm && (
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2.5 px-1">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+            <span className={`text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 ${
+              isNightMode ? 'text-amber-300' : 'text-slate-500'
+            }`}>
               <span>★</span>
               <span>Gần đây</span>
             </span>
@@ -122,12 +151,16 @@ export const SelectEmployeeScreen: React.FC<SelectEmployeeScreenProps> = ({
                   key={emp.id}
                   onClick={() => onSelectEmployee(emp)}
                   type="button"
-                  className="p-3 bg-white hover:bg-slate-50 border border-indigo-100/90 rounded-[18px] text-left transition-all active:scale-[0.98] shadow-sm hover:shadow flex items-center gap-2.5"
+                  className={`p-3 rounded-[18px] text-left transition-all active:scale-[0.98] shadow-sm flex items-center gap-2.5 ${
+                    isNightMode
+                      ? 'bg-slate-900/85 hover:bg-slate-800 border border-slate-800 text-slate-100'
+                      : 'bg-white hover:bg-slate-50 border border-indigo-100/90 text-slate-900'
+                  }`}
                 >
                   <Avatar name={emp.name} color={emp.color} size="sm" isWorking={status === 'working'} />
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold text-slate-900 truncate">{emp.name}</p>
-                    <p className="text-[11px] text-slate-500 truncate">{emp.role}</p>
+                    <p className={`text-xs font-bold truncate ${isNightMode ? 'text-white' : 'text-slate-900'}`}>{emp.name}</p>
+                    <p className={`text-[11px] truncate ${isNightMode ? 'text-slate-400' : 'text-slate-500'}`}>{emp.role}</p>
                   </div>
                 </button>
               );
@@ -154,7 +187,11 @@ export const SelectEmployeeScreen: React.FC<SelectEmployeeScreenProps> = ({
                 interactive
                 padding="sm"
                 onClick={() => onSelectEmployee(emp)}
-                className="flex items-center justify-between gap-3 p-3.5 sm:p-4 rounded-[18px] border-slate-200/90 hover:border-indigo-300"
+                className={`flex items-center justify-between gap-3 p-3.5 sm:p-4 rounded-[18px] transition-all ${
+                  isNightMode
+                    ? 'bg-slate-900/85 hover:bg-slate-800 border-slate-800 hover:border-amber-500/50 text-slate-100 shadow-md'
+                    : 'bg-white border-slate-200/90 hover:border-indigo-300 text-slate-900'
+                }`}
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <Avatar
@@ -165,14 +202,20 @@ export const SelectEmployeeScreen: React.FC<SelectEmployeeScreenProps> = ({
                   />
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <h3 className="font-bold text-slate-900 text-sm truncate">{emp.name}</h3>
+                      <h3 className={`font-bold text-sm truncate ${
+                        isNightMode ? 'text-white' : 'text-slate-900'
+                      }`}>
+                        {emp.name}
+                      </h3>
                       {emp.isAdmin && (
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-800 border border-amber-300/60">
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-amber-400/20 text-amber-300 border border-amber-400/40">
                           Admin
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-slate-500 truncate mt-0.5">
+                    <p className={`text-xs truncate mt-0.5 ${
+                      isNightMode ? 'text-slate-400' : 'text-slate-500'
+                    }`}>
                       {emp.role} • {emp.department}
                     </p>
                   </div>
@@ -188,23 +231,26 @@ export const SelectEmployeeScreen: React.FC<SelectEmployeeScreenProps> = ({
                       Đã hoàn thành
                     </Badge>
                   ) : (
-                    <span className="text-[11px] text-slate-400 px-2 py-0.5 rounded-full bg-slate-100 font-medium">
+                    <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${
+                      isNightMode ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-400'
+                    }`}>
                       Chưa vào ca
                     </span>
                   )}
                   <ChevronRight className="w-4 h-4 text-slate-400" />
                 </div>
-
               </Card>
             );
           })}
 
           {filteredEmployees.length === 0 && (
-            <div className="p-8 text-center bg-white rounded-[20px] border border-slate-200">
-              <p className="text-sm text-slate-500">Không tìm thấy nhân viên phù hợp</p>
+            <div className={`p-8 text-center rounded-[20px] border ${
+              isNightMode ? 'bg-slate-900/80 border-slate-800 text-slate-400' : 'bg-white border-slate-200 text-slate-500'
+            }`}>
+              <p className="text-sm">Không tìm thấy nhân viên phù hợp</p>
               <button
                 onClick={() => setSearchTerm('')}
-                className="text-xs text-indigo-600 font-bold mt-2"
+                className="text-xs text-amber-400 font-bold mt-2"
               >
                 Xóa bộ lọc tìm kiếm
               </button>

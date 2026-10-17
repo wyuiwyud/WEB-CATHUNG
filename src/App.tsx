@@ -19,14 +19,8 @@ function TimeTrackApp() {
     startShift,
     endShift,
     saveDirectShift,
-    shifts,
+    isNightMode,
   } = useStore();
-
-  // Khi người cuối cùng bấm tan ca (working === 0 & completed > 0), giao diện dần tối dần vào màn đêm
-  const isNightMode =
-    currentScreen === 'live-board' &&
-    shifts.some((s) => s.status === 'completed') &&
-    !shifts.some((s) => s.status === 'working');
 
   // State for confirm modal
   const [confirmData, setConfirmData] = useState<ConfirmShiftData | null>(null);
@@ -80,7 +74,11 @@ function TimeTrackApp() {
     if (res.success) {
       setIsConfirmModalOpen(false);
       setConfirmData(null);
-      toast.success(`Chấm công thành công cho ${currentEmployee.name}!`);
+      toast.success(
+        isNightMode
+          ? `☀️ Nhà hàng bừng sáng! Chấm công thành công cho ${currentEmployee.name}!`
+          : `Chấm công thành công cho ${currentEmployee.name}!`
+      );
       // Đóng menu và chuyển sang hiển thị Bảng giờ làm các thành viên khác
       setScreen('live-board');
     } else {
@@ -91,9 +89,14 @@ function TimeTrackApp() {
   // 1-touch Fast Check-in
   const handleFastCheckIn = (startTime: string) => {
     if (!currentEmployee) return;
+    const wasNight = isNightMode;
     const res = startShift(currentEmployee.id, startTime);
     if (res.success) {
-      toast.success(res.message);
+      toast.success(
+        wasNight
+          ? `☀️ Nhà hàng bừng sáng hoạt động! ${res.message}`
+          : res.message
+      );
       setScreen('live-board');
     } else {
       toast.error(res.message);

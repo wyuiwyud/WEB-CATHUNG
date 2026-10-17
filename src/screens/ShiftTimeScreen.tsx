@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import type { Employee, Shift } from '../types';
+import { useStore } from '../store/useStore';
 import { Card, Avatar, Button, Input } from '../components/ui';
 import { AppleTimePicker } from '../components/AppleTimePicker';
 import { CheckoutConfirmModal } from './CheckoutConfirmModal';
@@ -14,6 +15,8 @@ import {
   LogOut,
   Zap,
   CheckCircle2,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import {
   calculateShiftDuration,
@@ -49,6 +52,8 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
   onFastCheckIn,
   onFastCheckOut,
 }) => {
+  const { isNightMode } = useStore();
+
   // Realtime clock
   const [currentTime, setCurrentTime] = useState<string>('');
   const [currentSeconds, setCurrentSeconds] = useState<string>('');
@@ -135,26 +140,46 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
   };
 
   return (
-    <div className="w-full max-w-lg mx-auto pb-14 pt-3 px-4 sm:px-6">
+    <div className={`w-full max-w-lg mx-auto pb-14 pt-3 px-4 sm:px-6 transition-colors duration-1000 ${
+      isNightMode ? 'text-slate-100' : 'text-slate-900'
+    }`}>
       {/* Top back button & date */}
       <div className="flex items-center justify-between mb-4">
         <button
           type="button"
           onClick={onBack}
-          className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-slate-900 bg-white border border-slate-200/90 px-3 py-2 rounded-[12px] shadow-sm transition-all active:scale-95 min-h-[38px]"
+          className={`inline-flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-[12px] shadow-sm transition-all active:scale-95 min-h-[38px] ${
+            isNightMode
+              ? 'bg-slate-900 border border-slate-800 text-slate-200 hover:bg-slate-800'
+              : 'bg-white border border-slate-200/90 text-slate-600 hover:text-slate-900'
+          }`}
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Chọn nhân viên khác</span>
         </button>
 
-        <span className="text-xs text-slate-500 font-medium flex items-center gap-1">
-          <Calendar className="w-3.5 h-3.5" />
-          <span>{formatVietnameseDate()}</span>
-        </span>
+        {isNightMode ? (
+          <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-indigo-950/90 text-amber-300 border border-indigo-700/60 shadow-sm animate-pulse">
+            <Moon className="w-3.5 h-3.5 fill-amber-300/40" />
+            <span>Mở ca sáng đèn</span>
+          </span>
+        ) : (
+          <span className="text-xs text-slate-500 font-medium flex items-center gap-1">
+            <Calendar className="w-3.5 h-3.5" />
+            <span>{formatVietnameseDate()}</span>
+          </span>
+        )}
       </div>
 
       {/* Selected Employee Info Banner */}
-      <Card padding="sm" className="mb-4 bg-gradient-to-r from-white via-indigo-50/30 to-white border-indigo-100">
+      <Card
+        padding="sm"
+        className={`mb-4 transition-all ${
+          isNightMode
+            ? 'bg-slate-900/90 border-slate-800 text-slate-100 shadow-md'
+            : 'bg-gradient-to-r from-white via-indigo-50/30 to-white border-indigo-100'
+        }`}
+      >
         <div className="flex items-center gap-3">
           <Avatar
             name={employee.name}
@@ -164,19 +189,21 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
           />
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <h2 className="text-base sm:text-lg font-bold text-slate-900 truncate">
+              <h2 className={`text-base sm:text-lg font-bold truncate ${
+                isNightMode ? 'text-white' : 'text-slate-900'
+              }`}>
                 {employee.name}
               </h2>
               {employee.isAdmin && (
-                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-800 border border-amber-300">
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-amber-400/20 text-amber-300 border border-amber-400/40">
                   Admin
                 </span>
               )}
             </div>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className={`text-xs mt-0.5 ${isNightMode ? 'text-slate-400' : 'text-slate-500'}`}>
               {employee.role} • {employee.department}
             </p>
-            <p className="text-xs font-semibold text-indigo-600 mt-1">
+            <p className={`text-xs font-semibold mt-1 ${isNightMode ? 'text-amber-400' : 'text-indigo-600'}`}>
               Đơn giá: {new Intl.NumberFormat('vi-VN').format(employee.hourlyRate)} đ/giờ
             </p>
           </div>
@@ -257,30 +284,42 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
             </div>
 
             <Button
-              variant="success"
+              variant={isNightMode ? 'primary' : 'success'}
               size="lg"
               fullWidth
-              leftIcon={<Play className="w-4 h-4 fill-white" />}
+              leftIcon={isNightMode ? <Sun className="w-4 h-4 text-slate-950 fill-slate-950/20" /> : <Play className="w-4 h-4 fill-white" />}
               onClick={() => onFastCheckIn(currentTime || getCurrentTimeString())}
-              className="shadow-emerald-500/20 py-3.5 text-base font-bold"
+              className={`py-3.5 text-base font-black ${
+                isNightMode
+                  ? 'bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 text-slate-950 border border-amber-300 shadow-[0_8px_25px_rgba(245,158,11,0.35)]'
+                  : 'shadow-emerald-500/20'
+              }`}
             >
-              BẮT ĐẦU VÀO CA LÚC {currentTime}
+              {isNightMode
+                ? `BẮT ĐẦU VÀO CA LÚC ${currentTime} (MỞ CỬA QUÁN)`
+                : `BẮT ĐẦU VÀO CA LÚC ${currentTime}`}
             </Button>
             <p className="text-[11px] text-slate-400 mt-1.5">
-              Nhấn vào đây để bắt đầu tính giờ làm ngay bây giờ
+              {isNightMode
+                ? 'Nhấn vào đây để mở cửa nhà hàng và bắt đầu tính giờ ca đầu tiên'
+                : 'Nhấn vào đây để bắt đầu tính giờ làm ngay bây giờ'}
             </p>
           </div>
 
           {/* ======================================================== */}
           {/* ⚡ CHỌN CA NHANH: 3H, 4H, 5H (YÊU CẦU CỦA USER)        */}
           {/* ======================================================== */}
-          <div className="p-3.5 sm:p-4 rounded-[22px] bg-white border border-indigo-100 shadow-sm space-y-2.5">
+          <div className={`p-3.5 sm:p-4 rounded-[22px] border shadow-sm space-y-2.5 ${
+            isNightMode ? 'bg-slate-900/85 border-slate-800 text-slate-100' : 'bg-white border-indigo-100 text-slate-900'
+          }`}>
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+              <span className={`text-xs font-bold flex items-center gap-1.5 ${
+                isNightMode ? 'text-amber-300' : 'text-slate-800'
+              }`}>
                 <Zap className="w-4 h-4 text-amber-500 fill-amber-400" />
                 <span>Chọn ca nhanh theo giờ làm quán nướng:</span>
               </span>
-              <span className="text-[11px] text-indigo-600 font-bold">1 chạm chốt ca</span>
+              <span className={`text-[11px] font-bold ${isNightMode ? 'text-indigo-400' : 'text-indigo-600'}`}>1 chạm chốt ca</span>
             </div>
 
             <div className="grid grid-cols-3 gap-2.5">
@@ -290,14 +329,18 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
                 onClick={() => applyQuickDuration(3)}
                 className={`py-3 px-2 rounded-[16px] border text-center transition-all active:scale-95 flex flex-col items-center justify-center ${
                   durationResult.totalMinutes === 180
-                    ? 'border-indigo-600 bg-indigo-50/90 text-indigo-950 font-black ring-2 ring-indigo-500/25 shadow-sm'
+                    ? isNightMode
+                      ? 'border-indigo-500 bg-indigo-950/90 text-white font-black ring-2 ring-indigo-400/40 shadow-sm'
+                      : 'border-indigo-600 bg-indigo-50/90 text-indigo-950 font-black ring-2 ring-indigo-500/25 shadow-sm'
+                    : isNightMode
+                    ? 'border-slate-800 bg-slate-900/80 hover:bg-slate-800 text-slate-200'
                     : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-800 shadow-2xs'
                 }`}
               >
-                <span className="text-base font-black text-indigo-600 tabular-nums">Ca 3h</span>
-                <span className="text-[10px] text-slate-500 font-medium mt-0.5">3 tiếng</span>
+                <span className={`text-base font-black tabular-nums ${isNightMode ? 'text-indigo-300' : 'text-indigo-600'}`}>Ca 3h</span>
+                <span className="text-[10px] text-slate-400 font-medium mt-0.5">3 tiếng</span>
                 {durationResult.totalMinutes === 180 && (
-                  <CheckCircle2 className="w-3.5 h-3.5 text-indigo-600 mt-1" />
+                  <CheckCircle2 className="w-3.5 h-3.5 text-indigo-400 mt-1" />
                 )}
               </button>
 
@@ -307,14 +350,18 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
                 onClick={() => applyQuickDuration(4)}
                 className={`py-3 px-2 rounded-[16px] border text-center transition-all active:scale-95 flex flex-col items-center justify-center ${
                   durationResult.totalMinutes === 240
-                    ? 'border-indigo-600 bg-indigo-50/90 text-indigo-950 font-black ring-2 ring-indigo-500/25 shadow-sm'
+                    ? isNightMode
+                      ? 'border-amber-500 bg-amber-950/90 text-white font-black ring-2 ring-amber-400/40 shadow-sm'
+                      : 'border-indigo-600 bg-indigo-50/90 text-indigo-950 font-black ring-2 ring-indigo-500/25 shadow-sm'
+                    : isNightMode
+                    ? 'border-slate-800 bg-slate-900/80 hover:bg-slate-800 text-slate-200'
                     : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-800 shadow-2xs'
                 }`}
               >
-                <span className="text-base font-black text-amber-600 tabular-nums">Ca 4h</span>
-                <span className="text-[10px] text-slate-500 font-medium mt-0.5">4 tiếng (Chuẩn)</span>
+                <span className={`text-base font-black tabular-nums ${isNightMode ? 'text-amber-400' : 'text-amber-600'}`}>Ca 4h</span>
+                <span className="text-[10px] text-slate-400 font-medium mt-0.5">4 tiếng (Chuẩn)</span>
                 {durationResult.totalMinutes === 240 && (
-                  <CheckCircle2 className="w-3.5 h-3.5 text-amber-600 mt-1" />
+                  <CheckCircle2 className="w-3.5 h-3.5 text-amber-400 mt-1" />
                 )}
               </button>
 
@@ -324,14 +371,18 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
                 onClick={() => applyQuickDuration(5)}
                 className={`py-3 px-2 rounded-[16px] border text-center transition-all active:scale-95 flex flex-col items-center justify-center ${
                   durationResult.totalMinutes === 300
-                    ? 'border-indigo-600 bg-indigo-50/90 text-indigo-950 font-black ring-2 ring-indigo-500/25 shadow-sm'
+                    ? isNightMode
+                      ? 'border-emerald-500 bg-emerald-950/90 text-white font-black ring-2 ring-emerald-400/40 shadow-sm'
+                      : 'border-indigo-600 bg-indigo-50/90 text-indigo-950 font-black ring-2 ring-indigo-500/25 shadow-sm'
+                    : isNightMode
+                    ? 'border-slate-800 bg-slate-900/80 hover:bg-slate-800 text-slate-200'
                     : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-800 shadow-2xs'
                 }`}
               >
-                <span className="text-base font-black text-emerald-600 tabular-nums">Ca 5h</span>
-                <span className="text-[10px] text-slate-500 font-medium mt-0.5">5 tiếng (Tăng ca)</span>
+                <span className={`text-base font-black tabular-nums ${isNightMode ? 'text-emerald-400' : 'text-emerald-600'}`}>Ca 5h</span>
+                <span className="text-[10px] text-slate-400 font-medium mt-0.5">5 tiếng (Tăng ca)</span>
                 {durationResult.totalMinutes === 300 && (
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 mt-1" />
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 mt-1" />
                 )}
               </button>
             </div>
@@ -436,21 +487,25 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
           {/* Calculation Result */}
           <div>
             {durationResult.isValid ? (
-              <div className="p-3.5 rounded-[18px] bg-white border border-indigo-200/90 shadow-sm flex items-center justify-between">
+              <div className={`p-3.5 rounded-[18px] border shadow-sm flex items-center justify-between transition-colors ${
+                isNightMode
+                  ? 'bg-slate-900/85 border-slate-800 text-slate-100'
+                  : 'bg-white border-indigo-200/90 text-slate-800'
+              }`}>
                 <div>
-                  <p className="text-xs text-slate-500 font-medium">Tổng thời gian ca làm:</p>
-                  <p className="text-xl font-black text-indigo-600 tabular-nums">
+                  <p className={`text-xs font-medium ${isNightMode ? 'text-slate-400' : 'text-slate-500'}`}>Tổng thời gian ca làm:</p>
+                  <p className={`text-xl font-black tabular-nums ${isNightMode ? 'text-amber-400' : 'text-indigo-600'}`}>
                     {durationResult.formattedString}
                   </p>
                 </div>
                 <div className="text-right">
                   <p className="text-[11px] text-slate-400 font-medium">Khung giờ đã chọn:</p>
-                  <p className="text-xs font-bold text-slate-800 tabular-nums">
+                  <p className={`text-xs font-bold tabular-nums ${isNightMode ? 'text-slate-200' : 'text-slate-800'}`}>
                     {startTime} ➔ {endTime}
                   </p>
                   {durationResult.isOvernight && (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 mt-1">
-                      <AlertTriangle className="w-3 h-3 text-amber-600" />
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30 mt-1">
+                      <AlertTriangle className="w-3 h-3 text-amber-400" />
                       <span>Ca qua đêm (+24h)</span>
                     </span>
                   )}
@@ -483,13 +538,19 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
               fullWidth
               disabled={!durationResult.isValid}
               onClick={handleConfirmClick}
-              rightIcon={<Sparkles className="w-4 h-4" />}
-              className="shadow-indigo-500/25 py-3.5 text-base font-bold"
+              rightIcon={isNightMode ? <Sun className="w-4 h-4 text-slate-950 fill-slate-950/20" /> : <Sparkles className="w-4 h-4" />}
+              className={`py-3.5 text-base font-bold transition-all ${
+                isNightMode
+                  ? 'bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 hover:from-amber-300 hover:to-orange-400 text-slate-950 border border-amber-300 shadow-[0_8px_25px_rgba(245,158,11,0.35)]'
+                  : 'shadow-indigo-500/25'
+              }`}
             >
-              TIẾP TỤC XÁC NHẬN →
+              {isNightMode ? 'TIẾP TỤC XÁC NHẬN (MỞ CỬA QUÁN) →' : 'TIẾP TỤC XÁC NHẬN →'}
             </Button>
             <p className="text-[11px] text-center text-slate-400 mt-2">
-              Xem lại thông tin và xác nhận ca làm ở bước tiếp theo
+              {isNightMode
+                ? 'Kiểm tra thông tin trước khi xác nhận mở cửa hoạt động ca làm'
+                : 'Xem lại thông tin và xác nhận ca làm ở bước tiếp theo'}
             </p>
           </div>
         </div>

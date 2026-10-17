@@ -22,7 +22,7 @@ export const LiveBoardScreen: React.FC<LiveBoardScreenProps> = ({
   onOpenAdmin,
   onNewCheckIn,
 }) => {
-  const { employees, shifts, newAddedShiftId } = useStore();
+  const { employees, shifts, newAddedShiftId, isNightMode } = useStore();
   const [statusFilter, setStatusFilter] = useState<'all' | 'working' | 'completed' | 'not_started'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -58,8 +58,9 @@ export const LiveBoardScreen: React.FC<LiveBoardScreenProps> = ({
       .reduce((sum, s) => sum + (s.totalMinutes || 0), 0);
   }, [shifts]);
 
-  // Trạng thái: Người cuối cùng đã tan ca hết (working === 0 & completed > 0)
-  const isAllOffDuty = kpis.working === 0 && kpis.completed > 0;
+  // Trạng thái: Chế độ màn đêm hoạt hình khi người cuối cùng đã tan ca hết,
+  // chỉ tắt và sáng trở lại sau khi người đầu tiên xác nhận ca làm mới thành công!
+  const isAllOffDuty = isNightMode;
 
   // Filtered and sorted list: working first -> completed next -> not_started last
   const sortedAndFilteredList = useMemo(() => {

@@ -42,6 +42,10 @@ interface StoreContextType {
   getSalaryData: () => SalaryItem[];
   exportShiftsExcel: (filteredShifts?: Shift[]) => void;
   exportSalaryExcel: () => void;
+
+  // Night Mode state
+  isNightMode: boolean;
+  setIsNightMode: (active: boolean) => void;
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -50,6 +54,7 @@ const STORAGE_KEYS = {
   EMPLOYEES: 'timetrack_cathung_employees_v2',
   SHIFTS: 'timetrack_cathung_shifts_v2',
   RECENT_IDS: 'timetrack_cathung_recent_v2',
+  NIGHT_MODE: 'timetrack_cathung_night_mode_v2',
 };
 
 export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -85,7 +90,29 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [currentScreen, setCurrentScreen] = useState<AppScreen>('select-employee');
   const [newAddedShiftId, setNewAddedShiftId] = useState<string | null>(null);
 
+  // Chế độ màn đêm hoạt hình: Bắt đầu khi người cuối cùng bấm tan ca (working === 0),
+  // và CHỈ TẮT (giao diện sáng trở lại) khi người đầu tiên xác nhận ca làm thành công!
+  const [isNightMode, setIsNightMode] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.NIGHT_MODE);
+      if (saved !== null) return JSON.parse(saved);
+      const working = INITIAL_SHIFTS.filter((s) => s.status === 'working').length;
+      const completed = INITIAL_SHIFTS.filter((s) => s.status === 'completed').length;
+      return completed > 0 && working === 0;
+    } catch {
+      return false;
+    }
+  });
+
   // Sync to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEYS.NIGHT_MODE, JSON.stringify(isNightMode));
+    } catch (e) {
+      console.error('Failed to save night mode', e);
+    }
+  }, [isNightMode]);
+
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEYS.EMPLOYEES, JSON.stringify(employees));
@@ -174,6 +201,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setNewAddedShiftId(newShift.id);
       setTimeout(() => setNewAddedShiftId(null), 2500);
 
+      // Người đầu tiên vào ca -> TẮT chế độ màn đêm, giao diện bừng sáng trở lại!
+      setIsNightMode(false);
+
       return { success: true, message: `Bắt đầu ca làm lúc ${startTime}`, shift: newShift };
     },
     [employees, shifts]
@@ -201,6 +231,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setShifts((prev) => prev.map((s) => (s.id === shiftId ? updatedShift : s)));
       setNewAddedShiftId(updatedShift.id);
       setTimeout(() => setNewAddedShiftId(null), 2500);
+
+      // Nếu sau khi tan ca này, không còn ai trong ca làm nữa -> BẬT chế độ màn đêm hoạt hình
+      const remainingWorking = shifts.filter((s) => s.id !== shiftId && s.status === 'working').length;
+      if (remainingWorking === 0) {
+        setIsNightMode(true);
+      }
 
       return {
         success: true,
@@ -255,6 +291,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
       setNewAddedShiftId(finalShift.id);
       setTimeout(() => setNewAddedShiftId(null), 2500);
+
+      // Xác nhận ca làm người đầu tiên thành công -> TẮT chế độ màn đêm, giao diện bừng sáng trở lại!
+      setIsNightMode(false);
 
       return {
         success: true,
@@ -408,6 +447,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         getSalaryData,
         exportShiftsExcel,
         exportSalaryExcel,
+        isNightMode,
+        setIsNightMode,
       }}
     >
       {children}
