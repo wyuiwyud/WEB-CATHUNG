@@ -6,10 +6,7 @@ import {
   UserPlus,
   Flame,
   Clock,
-  CheckCircle2,
-  Users,
   Search,
-  Coffee,
   Sun,
   Moon,
 } from 'lucide-react';
@@ -172,64 +169,7 @@ export const LiveBoardScreen: React.FC<LiveBoardScreenProps> = ({
         />
       )}
 
-      {/* 4 KPI Cards (Bỏ tính năng duyệt) */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-5">
-        <div className={`p-3 rounded-[18px] border shadow-sm flex items-center gap-2.5 transition-colors duration-700 ${
-          isAllOffDuty ? 'bg-slate-900/85 border-slate-800' : 'bg-white border-slate-200'
-        }`}>
-          <div className={`w-9 h-9 rounded-[12px] flex items-center justify-center font-bold text-sm ${
-            isAllOffDuty ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-700'
-          }`}>
-            <Users className="w-4 h-4" />
-          </div>
-          <div>
-            <p className={`text-[11px] font-semibold ${isAllOffDuty ? 'text-slate-400' : 'text-slate-500'}`}>Tổng nhân sự</p>
-            <p className={`text-lg font-black tabular-nums ${isAllOffDuty ? 'text-white' : 'text-slate-900'}`}>{kpis.totalStaff}</p>
-          </div>
-        </div>
 
-        <div className={`p-3 rounded-[18px] border shadow-sm flex items-center gap-2.5 transition-colors duration-700 ${
-          isAllOffDuty ? 'bg-slate-900/85 border-amber-900/40' : 'bg-white border-amber-200'
-        }`}>
-          <div className={`w-9 h-9 rounded-[12px] flex items-center justify-center font-bold text-sm ${
-            isAllOffDuty ? 'bg-amber-950/80 text-amber-400' : 'bg-amber-100 text-amber-700'
-          }`}>
-            <span className={`w-2.5 h-2.5 rounded-full ${isAllOffDuty ? 'bg-amber-400' : 'bg-amber-500 animate-ping'}`} />
-          </div>
-          <div>
-            <p className={`text-[11px] font-semibold ${isAllOffDuty ? 'text-amber-300/80' : 'text-amber-800'}`}>Đang trong ca</p>
-            <p className={`text-lg font-black tabular-nums ${isAllOffDuty ? 'text-amber-300' : 'text-amber-900'}`}>{kpis.working}</p>
-          </div>
-        </div>
-
-        <div className={`p-3 rounded-[18px] border shadow-sm flex items-center gap-2.5 transition-colors duration-700 ${
-          isAllOffDuty ? 'bg-slate-900/85 border-emerald-900/40' : 'bg-white border-emerald-200'
-        }`}>
-          <div className={`w-9 h-9 rounded-[12px] flex items-center justify-center font-bold text-sm ${
-            isAllOffDuty ? 'bg-emerald-950/80 text-emerald-400' : 'bg-emerald-100 text-emerald-700'
-          }`}>
-            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-          </div>
-          <div>
-            <p className={`text-[11px] font-semibold ${isAllOffDuty ? 'text-emerald-300/80' : 'text-emerald-800'}`}>Đã hoàn thành</p>
-            <p className={`text-lg font-black tabular-nums ${isAllOffDuty ? 'text-emerald-400' : 'text-emerald-900'}`}>{kpis.completed}</p>
-          </div>
-        </div>
-
-        <div className={`p-3 rounded-[18px] border shadow-sm flex items-center gap-2.5 transition-colors duration-700 ${
-          isAllOffDuty ? 'bg-slate-900/85 border-slate-800' : 'bg-white border-slate-200'
-        }`}>
-          <div className={`w-9 h-9 rounded-[12px] flex items-center justify-center font-bold text-sm ${
-            isAllOffDuty ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-500'
-          }`}>
-            <Coffee className="w-4 h-4" />
-          </div>
-          <div>
-            <p className={`text-[11px] font-semibold ${isAllOffDuty ? 'text-slate-400' : 'text-slate-500'}`}>Chưa vào ca</p>
-            <p className={`text-lg font-black tabular-nums ${isAllOffDuty ? 'text-slate-400' : 'text-slate-700'}`}>{kpis.notStarted}</p>
-          </div>
-        </div>
-      </div>
 
       {/* Filter and Search Bar */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 mb-4">
