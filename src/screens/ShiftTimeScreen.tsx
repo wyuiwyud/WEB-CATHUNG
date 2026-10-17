@@ -1,21 +1,18 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import type { Employee, Shift } from '../types';
 import { Card, Avatar, Button, Input } from '../components/ui';
-import { AlarmTimeBar } from '../components/AlarmTimeBar';
-import { CheckoutConfirmModal, POPULAR_CHECKOUT_PRESETS, type CheckoutPreset } from './CheckoutConfirmModal';
+import { AppleTimePicker } from '../components/AppleTimePicker';
+import { CheckoutConfirmModal } from './CheckoutConfirmModal';
 import {
   Clock,
   ArrowLeft,
-  Sun,
-  Moon,
   Sparkles,
   AlertTriangle,
   Play,
   FileText,
   Calendar,
-  AlarmClock,
   LogOut,
-  Flame,
+  Zap,
   CheckCircle2,
 } from 'lucide-react';
 import {
@@ -62,6 +59,9 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
   // Modal for giant Checkout button
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
 
+  // Active field being adjusted on Apple Time Picker: 'start' or 'end'
+  const [activeTimeField, setActiveTimeField] = useState<'start' | 'end'>('start');
+
   useEffect(() => {
     const updateTime = () => {
       const now = new Date();
@@ -97,13 +97,13 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
   const [startTime, setStartTime] = useState<string>(() => {
     if (initialStartTime) return initialStartTime;
     if (existingShift?.startTime) return existingShift.startTime;
-    return '16:00'; // Default restaurant afternoon start time
+    return '17:00'; // Default restaurant evening start time
   });
 
   const [endTime, setEndTime] = useState<string>(() => {
     if (initialEndTime) return initialEndTime;
     if (existingShift?.endTime) return existingShift.endTime;
-    return '00:00'; // Default restaurant midnight top 1 checkout time
+    return '21:00'; // Default 4 hours later
   });
 
   const [note, setNote] = useState<string>(existingShift?.note || '');
@@ -113,17 +113,14 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
     return calculateShiftDuration(startTime, endTime);
   }, [startTime, endTime]);
 
-  // Restaurant common shifts
-  const shiftTemplates = [
-    { label: 'Ca Tối Nướng', start: '16:00', end: '00:00', icon: Moon, color: 'text-amber-500' },
-    { label: 'Ca Khuya Đông', start: '17:00', end: '01:00', icon: Sparkles, color: 'text-indigo-500' },
-    { label: 'Ca Sáng Sơ Chế', start: '09:00', end: '15:00', icon: Sun, color: 'text-orange-500' },
-    { label: 'Ca Cả Ngày Full', start: '10:00', end: '22:00', icon: Sparkles, color: 'text-purple-500' },
-  ];
-
-  const applyTemplate = (start: string, end: string) => {
-    setStartTime(start);
-    setEndTime(end);
+  // Quick shift duration helper: 3h, 4h, 5h
+  const applyQuickDuration = (hoursToAdd: number) => {
+    const [h, m] = startTime.split(':').map(Number);
+    const totalM = (h * 60 + (m || 0) + hoursToAdd * 60) % (24 * 60);
+    const endH = Math.floor(totalM / 60).toString().padStart(2, '0');
+    const endM = (totalM % 60).toString().padStart(2, '0');
+    setEndTime(`${endH}:${endM}`);
+    setActiveTimeField('end');
   };
 
   const handleConfirmClick = () => {
@@ -211,15 +208,11 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
             </p>
           </div>
 
-          {/* ===================================================== */}
-          {/* 🔴 NÚT TAN CA SIÊU TO GIỮA MÀN HÌNH (YÊU CẦU CỦA USER) */}
-          {/* ===================================================== */}
+          {/* 🔴 NÚT TAN CA SIÊU TO GIỮA MÀN HÌNH */}
           <div className="flex flex-col items-center justify-center pt-2 pb-4">
             <div className="relative group">
-              {/* Outer pulsing animated aura */}
               <div className="absolute -inset-3 rounded-full bg-gradient-to-r from-red-500 to-rose-600 opacity-40 blur-xl group-hover:opacity-60 transition duration-300 animate-pulse pointer-events-none" />
 
-              {/* Giant Button */}
               <button
                 type="button"
                 onClick={() => setIsCheckoutModalOpen(true)}
@@ -243,21 +236,10 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
               Chạm nút siêu to trên để kết thúc ca làm, chọn giờ tan ca (Top 1: 0h, Top 2: 1h...) và chốt giờ làm
             </p>
           </div>
-
-          {/* Quick link to manual shift entry */}
-          <div className="pt-2 border-t border-slate-200">
-            <button
-              type="button"
-              onClick={() => setIsCheckoutModalOpen(true)}
-              className="text-xs font-bold text-indigo-600 hover:text-indigo-800 underline"
-            >
-              Hoặc mở bảng xác nhận giờ tan ca chi tiết
-            </button>
-          </div>
         </div>
       ) : (
         /* ========================================================================= */
-        /* 🟢 TRƯỜNG HỢP 2: CHƯA VÀO CA ➔ BẮT ĐẦU HOẶC CHỌN GIỜ LÀM               */
+        /* 🟢 TRƯỜNG HỢP 2: CHƯA VÀO CA ➔ CHỌN CA BẰNG ĐỒNG HỒ APPLE & CA NHANH 3H, 4H, 5H */
         /* ========================================================================= */
         <div className="space-y-4">
           {/* Quick Start Shift Button */}
@@ -289,113 +271,165 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
             </p>
           </div>
 
-          {/* Common Shifts Quick Chips */}
-          <div>
-            <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5 mb-2 px-1">
-              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-              <span>Chọn nhanh ca phổ biến của quán nướng:</span>
-            </label>
-            <div className="grid grid-cols-2 gap-2">
-              {shiftTemplates.map((tmpl) => {
-                const isSelected = startTime === tmpl.start && endTime === tmpl.end;
-                return (
-                  <button
-                    key={tmpl.label}
-                    type="button"
-                    onClick={() => applyTemplate(tmpl.start, tmpl.end)}
-                    className={`p-2.5 rounded-[14px] border text-left transition-all active:scale-95 flex items-center gap-2 ${
-                      isSelected
-                        ? 'border-indigo-600 bg-indigo-50/90 text-indigo-950 font-bold shadow-sm'
-                        : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-2xs'
-                    }`}
-                  >
-                    <tmpl.icon className={`w-3.5 h-3.5 ${tmpl.color} shrink-0`} />
-                    <div className="min-w-0">
-                      <p className="text-xs font-semibold truncate">{tmpl.label}</p>
-                      <p className="text-[11px] text-slate-500 tabular-nums">
-                        {tmpl.start} — {tmpl.end}
-                      </p>
-                    </div>
-                  </button>
-                );
-              })}
+          {/* ======================================================== */}
+          {/* ⚡ CHỌN CA NHANH: 3H, 4H, 5H (YÊU CẦU CỦA USER)        */}
+          {/* ======================================================== */}
+          <div className="p-3.5 sm:p-4 rounded-[22px] bg-white border border-indigo-100 shadow-sm space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                <Zap className="w-4 h-4 text-amber-500 fill-amber-400" />
+                <span>Chọn ca nhanh theo giờ làm quán nướng:</span>
+              </span>
+              <span className="text-[11px] text-indigo-600 font-bold">1 chạm chốt ca</span>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2.5">
+              {/* Ca 3h */}
+              <button
+                type="button"
+                onClick={() => applyQuickDuration(3)}
+                className={`py-3 px-2 rounded-[16px] border text-center transition-all active:scale-95 flex flex-col items-center justify-center ${
+                  durationResult.totalMinutes === 180
+                    ? 'border-indigo-600 bg-indigo-50/90 text-indigo-950 font-black ring-2 ring-indigo-500/25 shadow-sm'
+                    : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-800 shadow-2xs'
+                }`}
+              >
+                <span className="text-base font-black text-indigo-600 tabular-nums">Ca 3h</span>
+                <span className="text-[10px] text-slate-500 font-medium mt-0.5">3 tiếng</span>
+                {durationResult.totalMinutes === 180 && (
+                  <CheckCircle2 className="w-3.5 h-3.5 text-indigo-600 mt-1" />
+                )}
+              </button>
+
+              {/* Ca 4h */}
+              <button
+                type="button"
+                onClick={() => applyQuickDuration(4)}
+                className={`py-3 px-2 rounded-[16px] border text-center transition-all active:scale-95 flex flex-col items-center justify-center ${
+                  durationResult.totalMinutes === 240
+                    ? 'border-indigo-600 bg-indigo-50/90 text-indigo-950 font-black ring-2 ring-indigo-500/25 shadow-sm'
+                    : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-800 shadow-2xs'
+                }`}
+              >
+                <span className="text-base font-black text-amber-600 tabular-nums">Ca 4h</span>
+                <span className="text-[10px] text-slate-500 font-medium mt-0.5">4 tiếng (Chuẩn)</span>
+                {durationResult.totalMinutes === 240 && (
+                  <CheckCircle2 className="w-3.5 h-3.5 text-amber-600 mt-1" />
+                )}
+              </button>
+
+              {/* Ca 5h */}
+              <button
+                type="button"
+                onClick={() => applyQuickDuration(5)}
+                className={`py-3 px-2 rounded-[16px] border text-center transition-all active:scale-95 flex flex-col items-center justify-center ${
+                  durationResult.totalMinutes === 300
+                    ? 'border-indigo-600 bg-indigo-50/90 text-indigo-950 font-black ring-2 ring-indigo-500/25 shadow-sm'
+                    : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-800 shadow-2xs'
+                }`}
+              >
+                <span className="text-base font-black text-emerald-600 tabular-nums">Ca 5h</span>
+                <span className="text-[10px] text-slate-500 font-medium mt-0.5">5 tiếng (Tăng ca)</span>
+                {durationResult.totalMinutes === 300 && (
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 mt-1" />
+                )}
+              </button>
             </div>
           </div>
 
-          {/* ⏰ THANH BÁO THỨC CHỌN GIỜ BẮT ĐẦU LÀM */}
-          <AlarmTimeBar
-            label="1. Giờ bắt đầu vào làm"
-            value={startTime}
-            onChange={setStartTime}
-            colorTheme="indigo"
-            description="Kéo thanh trượt như cài báo thức để chọn giờ vào làm"
-          />
-
-          {/* ======================================================== */}
-          {/* ⏰ ĐỀ XUẤT GIỜ TAN CA PHỔ BIẾN (TOP 1, 2, 3, 4)         */}
-          {/* ======================================================== */}
-          <div className="p-4 rounded-[22px] border border-amber-200/90 bg-amber-50/60 shadow-sm space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="p-1 rounded-md bg-amber-100 text-amber-700">
-                  <Flame className="w-4 h-4 fill-amber-500" />
-                </span>
-                <div>
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800">
-                    2. Giờ tan ca phổ biến tại quán
-                  </h4>
-                  <p className="text-[11px] text-slate-500">
-                    Chạm chọn nhanh giờ tan ca quen thuộc
-                  </p>
-                </div>
-              </div>
+          {/* ========================================================================= */}
+          {/* ⏰ THIẾT KẾ GIỐNG ĐỒNG HỒ APPLE (BÁNH XE CUỘN GIỜ & PHÚT CHUẨN APPLE)   */}
+          {/* ========================================================================= */}
+          <div className="p-4 rounded-[22px] bg-slate-900 text-white shadow-xl border border-slate-800 space-y-3">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+                <Clock className="w-4 h-4 text-indigo-400" />
+                <span>Đồng hồ cuộn Apple</span>
+              </span>
+              <span className="text-[11px] text-amber-300 font-semibold">
+                Vuốt cuộn giờ & phút
+              </span>
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
-              {POPULAR_CHECKOUT_PRESETS.map((preset: CheckoutPreset) => {
-                const isSelected = endTime === preset.time;
+            {/* Apple Toggle Tabs: [Giờ vào làm] vs [Giờ tan ca] */}
+            <div className="grid grid-cols-2 gap-2 p-1 rounded-[16px] bg-slate-800/90 border border-slate-700/80">
+              <button
+                type="button"
+                onClick={() => setActiveTimeField('start')}
+                className={`py-2 px-3 rounded-[12px] text-xs font-bold transition-all flex flex-col items-center justify-center ${
+                  activeTimeField === 'start'
+                    ? 'bg-gradient-to-r from-indigo-600 to-indigo-500 text-white shadow-md'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <span className="text-[10px] uppercase tracking-wider opacity-80">Giờ vào làm</span>
+                <span className="text-base font-black tabular-nums">{startTime}</span>
+              </button>
 
-                return (
+              <button
+                type="button"
+                onClick={() => setActiveTimeField('end')}
+                className={`py-2 px-3 rounded-[12px] text-xs font-bold transition-all flex flex-col items-center justify-center ${
+                  activeTimeField === 'end'
+                    ? 'bg-gradient-to-r from-amber-600 to-orange-500 text-white shadow-md'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <span className="text-[10px] uppercase tracking-wider opacity-80">Giờ tan ca</span>
+                <span className="text-base font-black tabular-nums">{endTime}</span>
+              </button>
+            </div>
+
+            {/* Apple Wheel Drum Picker */}
+            <div className="pt-1">
+              {activeTimeField === 'start' ? (
+                <div>
+                  <p className="text-[11px] text-slate-400 text-center mb-1">
+                    Đang chỉnh: <span className="font-bold text-indigo-300">Giờ bắt đầu vào làm</span>
+                  </p>
+                  <AppleTimePicker value={startTime} onChange={setStartTime} />
+                </div>
+              ) : (
+                <div>
+                  <p className="text-[11px] text-slate-400 text-center mb-1">
+                    Đang chỉnh: <span className="font-bold text-amber-300">Giờ tan ca</span>
+                  </p>
+                  <AppleTimePicker value={endTime} onChange={setEndTime} />
+                </div>
+              )}
+            </div>
+
+            {/* Quick Presets underneath Apple Wheel */}
+            <div className="pt-1 flex items-center justify-between text-xs">
+              <button
+                type="button"
+                onClick={() => {
+                  setStartTime(currentTime || getCurrentTimeString());
+                  setActiveTimeField('start');
+                }}
+                className="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 hover:text-white text-[11px] font-semibold"
+              >
+                Vào: Bây giờ ({currentTime})
+              </button>
+              <div className="flex gap-1">
+                {['00:00', '01:00', '02:00', '23:00'].map((t) => (
                   <button
-                    key={preset.id}
+                    key={t}
                     type="button"
-                    onClick={() => setEndTime(preset.time)}
-                    className={`p-2.5 rounded-[14px] border text-left transition-all active:scale-95 shadow-2xs flex flex-col justify-between ${
-                      isSelected
-                        ? preset.activeColor
-                        : `border-slate-200 bg-white ${preset.cardBorder}`
+                    onClick={() => {
+                      setEndTime(t);
+                      setActiveTimeField('end');
+                    }}
+                    className={`px-2 py-0.5 rounded-lg text-[10px] font-bold tabular-nums ${
+                      endTime === t
+                        ? 'bg-amber-400 text-slate-900'
+                        : 'bg-slate-800 text-slate-400 hover:text-white'
                     }`}
                   >
-                    <div className="flex items-center justify-between mb-1">
-                      <span
-                        className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${preset.badgeColor}`}
-                      >
-                        {preset.badge}
-                      </span>
-                      {isSelected && (
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-xs font-black text-slate-900 tabular-nums">
-                        {preset.label}
-                      </p>
-                      <p className="text-[10px] text-slate-500">{preset.sub}</p>
-                    </div>
+                    {t}
                   </button>
-                );
-              })}
-            </div>
-
-            {/* Hoặc kéo thanh trượt báo thức giờ tan ca */}
-            <div className="pt-1">
-              <AlarmTimeBar
-                label="Hoặc kéo chỉnh giờ tan ca chính xác:"
-                value={endTime}
-                onChange={setEndTime}
-                colorTheme="amber"
-                description="Kéo thanh trượt để chọn phút lẻ"
-              />
+                ))}
+              </div>
             </div>
           </div>
 
@@ -449,8 +483,8 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
               fullWidth
               disabled={!durationResult.isValid}
               onClick={handleConfirmClick}
-              rightIcon={<AlarmClock className="w-4 h-4" />}
-              className="shadow-indigo-500/25 py-3.5 text-base"
+              rightIcon={<Sparkles className="w-4 h-4" />}
+              className="shadow-indigo-500/25 py-3.5 text-base font-bold"
             >
               TIẾP TỤC XÁC NHẬN →
             </Button>
@@ -461,9 +495,7 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
         </div>
       )}
 
-      {/* ========================================================================= */}
-      {/* 🔴 MODAL XÁC NHẬN GIỜ TAN CA KHI BẤM NÚT TAN CA SIÊU TO                   */}
-      {/* ========================================================================= */}
+      {/* MODAL XÁC NHẬN GIỜ TAN CA KHI BẤM NÚT TAN CA SIÊU TO */}
       {existingShift && (
         <CheckoutConfirmModal
           isOpen={isCheckoutModalOpen}
@@ -475,7 +507,6 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
             onFastCheckOut(existingShift.id, selectedEnd, checkoutNote);
           }}
         />
-
       )}
     </div>
   );
