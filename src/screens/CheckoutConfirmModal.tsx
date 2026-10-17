@@ -1,12 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import type { Employee, Shift } from '../types';
 import { Modal, Button, Avatar, Badge, Input } from '../components/ui';
-import { AlarmTimeBar } from '../components/AlarmTimeBar';
+import { AppleTimePicker } from '../components/AppleTimePicker';
 import {
   calculateShiftDuration,
   formatCurrencyVND,
-  formatVietnameseDate,
   getCurrentTimeString,
+  formatMinutesToTime,
 } from '../utils/time';
 import {
   Clock,
@@ -15,8 +15,10 @@ import {
   RotateCcw,
   AlertTriangle,
   FileText,
-  Calendar,
+  Home,
+  Bike,
 } from 'lucide-react';
+
 
 export interface CheckoutPreset {
   id: string;
@@ -33,9 +35,9 @@ export const POPULAR_CHECKOUT_PRESETS: CheckoutPreset[] = [
   {
     id: 'top1',
     time: '00:00',
-    label: 'Top 1: 00:00 (0h đêm)',
-    sub: 'Tan ca dọn dẹp quán',
-    badge: '🥇 Phổ biến nhất',
+    label: '00:00 (0h đêm)',
+    sub: 'Dọn dẹp xong',
+    badge: '🥇 Top 1',
     badgeColor: 'bg-amber-100 text-amber-900 border-amber-300',
     cardBorder: 'hover:border-amber-400 hover:bg-amber-50/50',
     activeColor: 'border-amber-500 bg-amber-50/90 ring-2 ring-amber-400/30',
@@ -43,7 +45,7 @@ export const POPULAR_CHECKOUT_PRESETS: CheckoutPreset[] = [
   {
     id: 'top2',
     time: '01:00',
-    label: 'Top 2: 01:00 (1h sáng)',
+    label: '01:00 (1h sáng)',
     sub: 'Khách đông về muộn',
     badge: '🥈 Top 2',
     badgeColor: 'bg-indigo-100 text-indigo-900 border-indigo-300',
@@ -53,7 +55,7 @@ export const POPULAR_CHECKOUT_PRESETS: CheckoutPreset[] = [
   {
     id: 'top3',
     time: '02:00',
-    label: 'Top 3: 02:00 (2h sáng)',
+    label: '02:00 (2h sáng)',
     sub: 'Ca khuya đóng cửa',
     badge: '🥉 Top 3',
     badgeColor: 'bg-purple-100 text-purple-900 border-purple-300',
@@ -63,7 +65,7 @@ export const POPULAR_CHECKOUT_PRESETS: CheckoutPreset[] = [
   {
     id: 'top4',
     time: '23:00',
-    label: 'Top 4: 23:00 (23h đêm)',
+    label: '23:00 (23h đêm)',
     sub: 'Ca sớm nghỉ trước',
     badge: '🏅 Top 4',
     badgeColor: 'bg-emerald-100 text-emerald-900 border-emerald-300',
@@ -87,6 +89,43 @@ export const CheckoutConfirmModal: React.FC<CheckoutConfirmModalProps> = ({
   onClose,
   onConfirmCheckout,
 }) => {
+  // Compute recent predicted times (e.g. 15 mins ago, 30 mins ago, 45 mins ago when getting home)
+  const predictedRecentTimes = useMemo(() => {
+    const now = new Date();
+    const currentM = now.getHours() * 60 + now.getMinutes();
+
+    const calcTimeMinus = (minutesAgo: number) => {
+      let t = currentM - minutesAgo;
+      if (t < 0) t += 24 * 60;
+      return formatMinutesToTime(t);
+    };
+
+    return [
+      {
+        id: 'ago-15',
+        label: '15p trước',
+        time: calcTimeMinus(15),
+        desc: 'Vừa dọn xong & rời quán',
+        icon: Bike,
+      },
+      {
+        id: 'ago-30',
+        label: '30p trước',
+        time: calcTimeMinus(30),
+        desc: 'Đang trên đường về',
+        icon: Bike,
+      },
+      {
+        id: 'ago-45',
+        label: '45p trước',
+        time: calcTimeMinus(45),
+        desc: 'Vừa về tới nhà',
+        icon: Home,
+      },
+    ];
+  }, []);
+
+  // Default to 15-30 mins ago if user got home, or current time
   const [selectedEndTime, setSelectedEndTime] = useState<string>(() => {
     return getCurrentTimeString();
   });
@@ -109,7 +148,7 @@ export const CheckoutConfirmModal: React.FC<CheckoutConfirmModalProps> = ({
       isOpen={isOpen}
       onClose={onClose}
       title="Xác nhận Giờ Tan Ca"
-      description="Chọn đúng giờ tan ca thực tế của bạn trước khi kết thúc"
+      description="Menu xác nhận đơn giản — Chọn giờ lúc bạn kết thúc làm việc"
       maxWidth="md"
     >
       <div className="space-y-4">
@@ -129,14 +168,25 @@ export const CheckoutConfirmModal: React.FC<CheckoutConfirmModalProps> = ({
           </Badge>
         </div>
 
-        {/* ======================================================== */}
-        {/* ĐỀ XUẤT CÁC GIỜ TAN CA PHỔ BIẾN (TOP 1, 2, 3, 4)        */}
-        {/* ======================================================== */}
-        <div>
-          <div className="flex items-center justify-between mb-2">
+        {/* ================================================================= */}
+        {/* ⏰ Ở GIỮA: THANH CHỌN GIỜ & PHÚT GIỐNG ĐỒNG HỒ BÁO THỨC APPLE     */}
+        {/* ================================================================= */}
+        <div className="py-1">
+          <p className="text-xs font-bold text-center text-slate-700 uppercase tracking-wider mb-2 flex items-center justify-center gap-1.5">
+            <Clock className="w-4 h-4 text-indigo-600" />
+            <span>Chỉnh giờ & phút tan ca (Cuộn bánh xe Apple)</span>
+          </p>
+          <AppleTimePicker value={selectedEndTime} onChange={setSelectedEndTime} />
+        </div>
+
+        {/* ================================================================= */}
+        {/* 🛵 MỤC DƯỚI: DỰ ĐOÁN GIỜ TAN CA GẦN ĐÂY (VỀ TỚI NHÀ MỚI BẤM)      */}
+        {/* ================================================================= */}
+        <div className="space-y-2 pt-1">
+          <div className="flex items-center justify-between px-1">
             <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-              <span>Đề xuất giờ tan ca phổ biến tại Cát Hưng:</span>
+              <span>Dự đoán giờ tan ca gần đây (Về tới nhà mới bấm):</span>
             </span>
             <button
               type="button"
@@ -144,110 +194,98 @@ export const CheckoutConfirmModal: React.FC<CheckoutConfirmModalProps> = ({
               className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 underline flex items-center gap-1"
             >
               <Clock className="w-3 h-3" />
-              <span>Bây giờ ({getCurrentTimeString()})</span>
+              <span>Hiện tại ({getCurrentTimeString()})</span>
             </button>
           </div>
 
-          <div className="grid grid-cols-2 gap-2.5">
-            {POPULAR_CHECKOUT_PRESETS.map((preset: CheckoutPreset) => {
+          {/* Quick cards: 15p trước, 30p trước, 45p trước */}
+          <div className="grid grid-cols-3 gap-2">
+            {predictedRecentTimes.map((item) => {
+              const isSelected = selectedEndTime === item.time;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setSelectedEndTime(item.time)}
+                  className={`p-2.5 rounded-[14px] border text-center transition-all active:scale-95 flex flex-col items-center justify-center ${
+                    isSelected
+                      ? 'border-indigo-600 bg-indigo-50/90 text-indigo-950 font-bold ring-2 ring-indigo-500/20 shadow-sm'
+                      : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-2xs'
+                  }`}
+                >
+                  <item.icon className="w-3.5 h-3.5 text-indigo-600 mb-0.5" />
+                  <span className="text-xs font-black tabular-nums">{item.time}</span>
+                  <span className="text-[10px] text-slate-500">{item.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Các mốc giờ quen thuộc của quán nướng Cát Hưng */}
+          <div className="grid grid-cols-4 gap-1.5 pt-1">
+            {POPULAR_CHECKOUT_PRESETS.map((preset) => {
               const isSelected = selectedEndTime === preset.time;
               return (
                 <button
                   key={preset.id}
                   type="button"
                   onClick={() => setSelectedEndTime(preset.time)}
-                  className={`p-3 rounded-[16px] border text-left transition-all active:scale-95 shadow-2xs flex flex-col justify-between ${
+                  className={`py-1.5 px-2 rounded-[12px] border text-center transition-all active:scale-95 ${
                     isSelected
-                      ? preset.activeColor
-                      : `border-slate-200 bg-white ${preset.cardBorder}`
+                      ? 'border-amber-500 bg-amber-100 text-amber-950 font-black'
+                      : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-800 font-bold text-xs'
                   }`}
                 >
-                  <div className="flex items-center justify-between mb-1">
-                    <span
-                      className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full border ${preset.badgeColor}`}
-                    >
-                      {preset.badge}
-                    </span>
-                    {isSelected && (
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                    )}
-                  </div>
-                  <div>
-                    <p className="text-xs font-black text-slate-900 tabular-nums">
-                      {preset.label}
-                    </p>
-                    <p className="text-[10px] text-slate-500 mt-0.5">{preset.sub}</p>
-                  </div>
+                  <span className="text-xs tabular-nums block">{preset.time}</span>
+                  <span className="text-[9px] text-slate-500 block">{preset.badge}</span>
                 </button>
               );
             })}
           </div>
         </div>
 
-        {/* THANH BÁO THỨC CHỌN GIỜ TAN CA CHÍNH XÁC */}
-        <div className="pt-1">
-          <AlarmTimeBar
-            label="Hoặc chỉnh giờ tan ca chính xác:"
-            value={selectedEndTime}
-            onChange={setSelectedEndTime}
-            colorTheme="amber"
-            description="Kéo thanh trượt như cài báo thức để chỉnh phút lẻ"
-          />
-        </div>
-
-        {/* Breakdown Result */}
-        <div className="p-3.5 rounded-[18px] bg-slate-50 border border-slate-200 space-y-2 text-xs">
+        {/* Tóm tắt ca làm đơn giản */}
+        <div className="p-3 rounded-[16px] bg-slate-50 border border-slate-200 space-y-1.5 text-xs">
           <div className="flex justify-between items-center">
-            <span className="text-slate-500 flex items-center gap-1 font-medium">
-              <Calendar className="w-3.5 h-3.5 text-slate-400" />
-              <span>Ngày:</span>
-            </span>
-            <span className="font-semibold text-slate-900">{formatVietnameseDate()}</span>
-          </div>
-
-          <div className="flex justify-between items-center">
-            <span className="text-slate-500 flex items-center gap-1 font-medium">
-              <Clock className="w-3.5 h-3.5 text-indigo-500" />
-              <span>Khung giờ ca làm:</span>
-            </span>
-            <span className="font-bold text-slate-900 tabular-nums text-sm">
+            <span className="text-slate-500">Khung giờ:</span>
+            <span className="font-bold text-slate-900 tabular-nums">
               {shift.startTime} ➔ {selectedEndTime}
             </span>
           </div>
 
-          <div className="flex justify-between items-center pt-1 border-t border-slate-200/80">
-            <span className="text-slate-600 font-semibold">Tổng thời gian làm việc:</span>
-            <span className="text-base font-black text-indigo-600 tabular-nums">
+          <div className="flex justify-between items-center">
+            <span className="text-slate-500">Tổng thời gian:</span>
+            <span className="text-sm font-black text-indigo-600 tabular-nums">
               {durationResult.isValid ? durationResult.formattedString : '--:--'}
             </span>
           </div>
 
           <div className="flex justify-between items-center">
-            <span className="text-slate-600 font-semibold">Lương ca ước tính:</span>
+            <span className="text-slate-500">Tiền lương ước tính:</span>
             <span className="text-sm font-bold text-emerald-600 tabular-nums">
               {formatCurrencyVND(estimatedPay)}
             </span>
           </div>
 
           {durationResult.isOvernight && (
-            <div className="p-2 rounded-lg bg-amber-100/80 border border-amber-300 text-amber-900 flex items-center gap-1.5 text-[11px] font-bold">
-              <AlertTriangle className="w-3.5 h-3.5 text-amber-700 shrink-0" />
-              <span>Ca đêm qua 00:00 (Hệ thống đã tự động cộng thêm giờ ngày hôm sau)</span>
+            <div className="pt-1 text-[11px] font-bold text-amber-800 flex items-center gap-1">
+              <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+              <span>Ca đêm qua 00:00 (Hệ thống đã tự động tính đúng)</span>
             </div>
           )}
 
           {!durationResult.isValid && (
-            <div className="p-2 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 font-semibold text-[11px] flex items-center gap-1.5">
+            <div className="pt-1 text-[11px] font-bold text-rose-600 flex items-center gap-1">
               <AlertTriangle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
               <span>{durationResult.errorMessage}</span>
             </div>
           )}
         </div>
 
-        {/* Optional Note */}
+        {/* Ghi chú tùy chọn */}
         <div>
           <Input
-            label="Ghi chú khi tan ca (Tùy chọn)"
+            label="Ghi chú (Tùy chọn)"
             placeholder="Ví dụ: Đã dọn than xong, bàn giao ca..."
             value={note}
             onChange={(e) => setNote(e.target.value)}
@@ -255,7 +293,7 @@ export const CheckoutConfirmModal: React.FC<CheckoutConfirmModalProps> = ({
           />
         </div>
 
-        {/* 2 Buttons: [Chọn lại] & [Xác nhận tan ca] */}
+        {/* 2 Nút hành động */}
         <div className="grid grid-cols-2 gap-3 pt-1">
           <Button
             type="button"
@@ -274,7 +312,7 @@ export const CheckoutConfirmModal: React.FC<CheckoutConfirmModalProps> = ({
             disabled={!durationResult.isValid}
             leftIcon={<CheckCircle2 className="w-4 h-4" />}
             onClick={() => onConfirmCheckout(selectedEndTime, note.trim() || undefined)}
-            className="shadow-rose-500/25 py-3 font-bold"
+            className="shadow-rose-500/25 py-3 font-bold text-base"
           >
             XÁC NHẬN TAN CA
           </Button>
