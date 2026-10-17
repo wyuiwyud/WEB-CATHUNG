@@ -1,0 +1,118 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    color: #0F172A;
+    background-color: #F1F5F9;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    font-size: 15px;
+    line-height: 1.55;
+    background-color: #F1F5F9;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    letter-spacing: -0.02em;
+    font-weight: 700;
+    color: #0F172A;
+  }
+}
+
+@layer utilities {
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .min-touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .primary-gradient {
+    background: linear-gradient(135deg, #4F46E5 0%, #6366F1 100%);
+  }
+
+  .primary-gradient-hover:hover {
+    background: linear-gradient(135deg, #4338CA 0%, #4F46E5 100%);
+  }
+
+  .card-shadow {
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
+  }
+
+  .elevated-shadow {
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
+  }
+}
+
+/* Micro-interactions */
+.btn-interaction {
+  transition: all 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.btn-interaction:hover {
+  transform: translateY(-1px);
+}
+.btn-interaction:active {
+  transform: scale(0.98);
+}
+
+.card-interaction {
+  transition: all 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.card-interaction:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -3px rgba(15, 23, 42, 0.12), 0 4px 6px -4px rgba(15, 23, 42, 0.08);
+}
+
+/* Modal and Backdrop Animations */
+@keyframes backdropFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalPop {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-backdrop {
+  animation: backdropFade 200ms ease-out forwards;
+}
+
+.animate-modal {
+  animation: modalPop 220ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Smooth custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
