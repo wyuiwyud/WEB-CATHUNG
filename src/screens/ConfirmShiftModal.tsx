@@ -1,0 +1,141 @@
+import React from 'react';
+import type { Employee } from '../types';
+import { Modal, Button, Avatar, Badge } from '../components/ui';
+import { formatCurrencyVND, formatVietnameseDate } from '../utils/time';
+import { Clock, Calendar, CheckCircle, RotateCcw, FileText } from 'lucide-react';
+
+export interface ConfirmShiftData {
+  startTime: string;
+  endTime: string;
+  totalMinutes: number;
+  formattedDuration: string;
+  note?: string;
+}
+
+interface ConfirmShiftModalProps {
+  isOpen: boolean;
+  employee: Employee;
+  data: ConfirmShiftData;
+  onCloseAndEditAgain: () => void; // "nếu sai thì có thể bấm chọn lại 1 lần nửa"
+  onConfirmSuccess: () => void;
+  isLoading?: boolean;
+}
+
+export const ConfirmShiftModal: React.FC<ConfirmShiftModalProps> = ({
+  isOpen,
+  employee,
+  data,
+  onCloseAndEditAgain,
+  onConfirmSuccess,
+  isLoading = false,
+}) => {
+  const estimatedPay = (data.totalMinutes / 60) * employee.hourlyRate;
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onCloseAndEditAgain}
+      title="Xác nhận Giờ làm"
+      description="Vui lòng kiểm tra kỹ thông tin trước khi hoàn tất"
+      maxWidth="md"
+    >
+      <div className="space-y-4">
+        {/* Employee Summary Card */}
+        <div className="p-3.5 bg-slate-50 border border-slate-200/90 rounded-[18px] flex items-center gap-3">
+          <Avatar name={employee.name} color={employee.color} size="md" />
+          <div className="flex-1 min-w-0">
+            <h4 className="text-sm font-bold text-slate-900 truncate">{employee.name}</h4>
+            <p className="text-xs text-slate-500">
+              {employee.role} • {employee.department}
+            </p>
+          </div>
+          <Badge variant="completed" size="sm">
+            Hoàn thành ca
+          </Badge>
+        </div>
+
+        {/* Detailed Shift Breakdown */}
+        <div className="p-4 bg-white border border-slate-200 rounded-[18px] shadow-sm divide-y divide-slate-100 text-sm">
+          <div className="py-2.5 flex items-center justify-between first:pt-0">
+            <span className="text-slate-500 flex items-center gap-1.5 text-xs font-medium">
+              <Calendar className="w-4 h-4 text-slate-400" />
+              <span>Ngày làm việc:</span>
+            </span>
+            <span className="font-semibold text-slate-900">{formatVietnameseDate()}</span>
+          </div>
+
+          <div className="py-2.5 flex items-center justify-between">
+            <span className="text-slate-500 flex items-center gap-1.5 text-xs font-medium">
+              <Clock className="w-4 h-4 text-indigo-500" />
+              <span>Khung giờ ca làm:</span>
+            </span>
+            <span className="font-bold text-slate-900 tabular-nums">
+              {data.startTime} — {data.endTime}
+            </span>
+          </div>
+
+          <div className="py-2.5 flex items-center justify-between">
+            <span className="text-slate-500 text-xs font-medium">Tổng thời gian:</span>
+            <span className="font-extrabold text-base text-indigo-600 tabular-nums">
+              {data.formattedDuration}
+            </span>
+          </div>
+
+          <div className="py-2.5 flex items-center justify-between">
+            <span className="text-slate-500 text-xs font-medium">Lương ca ước tính:</span>
+            <span className="font-bold text-emerald-600 tabular-nums">
+              {formatCurrencyVND(estimatedPay)}
+            </span>
+          </div>
+
+          {data.note && (
+            <div className="pt-2.5 text-xs">
+              <span className="text-slate-500 flex items-center gap-1 font-medium mb-1">
+                <FileText className="w-3.5 h-3.5 text-slate-400" />
+                <span>Ghi chú của bạn:</span>
+              </span>
+              <p className="text-slate-700 bg-slate-50 p-2 rounded-lg italic">
+                "{data.note}"
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Note / Tip */}
+        <div className="flex items-start gap-2 p-3 bg-emerald-50/70 border border-emerald-100 rounded-[14px] text-xs text-emerald-900">
+          <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+          <p>
+            Sau khi xác nhận, ca làm việc sẽ được tự động chốt và lưu vào Bảng giờ làm hôm nay.
+          </p>
+        </div>
+
+
+        {/* 2 Big Action Buttons: [Chọn lại] & [Xác nhận] */}
+        <div className="grid grid-cols-2 gap-3 pt-2">
+          <Button
+            type="button"
+            variant="secondary"
+            size="lg"
+            leftIcon={<RotateCcw className="w-4 h-4" />}
+            onClick={onCloseAndEditAgain}
+            disabled={isLoading}
+          >
+            Chọn lại
+          </Button>
+
+          <Button
+            type="button"
+            variant="primary"
+            size="lg"
+            leftIcon={<CheckCircle className="w-4 h-4" />}
+            onClick={onConfirmSuccess}
+            isLoading={isLoading}
+            className="shadow-indigo-500/25"
+          >
+            Xác nhận
+          </Button>
+        </div>
+      </div>
+    </Modal>
+  );
+};

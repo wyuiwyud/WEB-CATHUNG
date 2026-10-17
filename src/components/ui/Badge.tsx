@@ -63,11 +63,12 @@ export const Badge: React.FC<BadgeProps> = ({
       border: 'border-indigo-200',
     },
     completed: {
-      bg: 'bg-blue-50',
-      text: 'text-blue-700',
-      dotColor: 'bg-blue-500',
-      border: 'border-blue-200',
+      bg: 'bg-emerald-50',
+      text: 'text-emerald-700',
+      dotColor: 'bg-emerald-500',
+      border: 'border-emerald-200',
     },
+
     neutral: {
       bg: 'bg-slate-100',
       text: 'text-slate-700',
