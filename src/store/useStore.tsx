@@ -179,9 +179,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (saved !== null) {
         return JSON.parse(saved);
       }
-      return false;
+      // Mặc định ban đầu nếu chưa có ai vào làm (working === 0) -> là chế độ đóng cửa / ban đêm!
+      return true;
     } catch {
-      return false;
+      return true;
     }
   });
 
@@ -224,7 +225,13 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           .order('created_at', { ascending: false });
 
         if (!shiftErr && dbShifts && isMounted) {
-          setShifts(dbShifts.map(mapDbShiftToLocal));
+          const loadedShifts = dbShifts.map(mapDbShiftToLocal);
+          setShifts(loadedShifts);
+          // Tự động kiểm tra: Nếu hiện tại không có ai đang trong ca (working) -> bật chế độ trời tối đóng cửa!
+          const hasWorkingNow = loadedShifts.some((s) => s.status === 'working');
+          if (!hasWorkingNow) {
+            setIsNightMode(true);
+          }
         }
       } catch (err) {
         console.warn('Supabase initial fetch skipped or failed:', err);
@@ -273,10 +280,20 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             setTimeout(() => setNewAddedShiftId(null), 2500);
           } else if (payload.eventType === 'UPDATE') {
             const updated = mapDbShiftToLocal(payload.new);
-            setShifts((prev) => prev.map((s) => (s.id === updated.id ? updated : s)));
+            setShifts((prev) => {
+              const next = prev.map((s) => (s.id === updated.id ? updated : s));
+              const hasWorking = next.some((s) => s.status === 'working');
+              setIsNightMode(!hasWorking);
+              return next;
+            });
           } else if (payload.eventType === 'DELETE') {
             const deletedId = (payload.old as any).id;
-            setShifts((prev) => prev.filter((s) => s.id !== deletedId));
+            setShifts((prev) => {
+              const next = prev.filter((s) => s.id !== deletedId);
+              const hasWorking = next.some((s) => s.status === 'working');
+              setIsNightMode(!hasWorking);
+              return next;
+            });
           }
         }
       )

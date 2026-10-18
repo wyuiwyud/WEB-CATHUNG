@@ -5,6 +5,7 @@ import type { Employee } from '../types';
 import { Card, Avatar, Badge } from '../components/ui';
 import { Search, ChevronRight, Flame, Users, Calendar, ArrowRight, Moon } from 'lucide-react';
 import { formatDisplayDate } from '../utils/time';
+import { NightRestaurantAnimation } from '../components/NightRestaurantAnimation';
 
 interface SelectEmployeeScreenProps {
   onSelectEmployee: (emp: Employee) => void;
@@ -81,6 +82,17 @@ export const SelectEmployeeScreen: React.FC<SelectEmployeeScreenProps> = ({
           <span>{formatDisplayDate(language)}</span>
         </p>
       </div>
+
+      {/* BANNER HOẠT HÌNH MÀN ĐÊM KHI CHƯA AI VÀO CA HOẶC ĐÃ TAN CA HẾT */}
+      {isNightMode && (
+        <div className="mb-5">
+          <NightRestaurantAnimation
+            onStartNewShift={() => {}}
+            completedCount={shifts.filter((s) => s.status === 'completed').length}
+            totalHoursFormatted=""
+          />
+        </div>
+      )}
 
       {/* Quick Access to Live Board banner */}
       <button
