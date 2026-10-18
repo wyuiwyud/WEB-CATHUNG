@@ -2,7 +2,7 @@ import React from 'react';
 import type { Employee } from '../types';
 import { useStore } from '../store/useStore';
 import { Modal, Button, Avatar, Badge } from '../components/ui';
-import { formatCurrencyVND, formatDisplayDate } from '../utils/time';
+import { formatDisplayDate } from '../utils/time';
 import { Clock, Calendar, CheckCircle, RotateCcw, FileText, Sun } from 'lucide-react';
 import { useTranslation } from '../i18n/translations';
 
@@ -33,7 +33,6 @@ export const ConfirmShiftModal: React.FC<ConfirmShiftModalProps> = ({
 }) => {
   const { isNightMode } = useStore();
   const { t, language } = useTranslation();
-  const estimatedPay = (data.totalMinutes / 60) * employee.hourlyRate;
 
   return (
     <Modal
@@ -82,13 +81,6 @@ export const ConfirmShiftModal: React.FC<ConfirmShiftModalProps> = ({
             <span className="text-slate-500 text-xs font-medium">{t('totalShiftDuration')}</span>
             <span className="font-extrabold text-base text-indigo-600 tabular-nums">
               {data.formattedDuration}
-            </span>
-          </div>
-
-          <div className="py-2.5 flex items-center justify-between">
-            <span className="text-slate-500 text-xs font-medium">{t('estimatedSalary')}</span>
-            <span className="font-bold text-emerald-600 tabular-nums">
-              {formatCurrencyVND(estimatedPay)}
             </span>
           </div>
 

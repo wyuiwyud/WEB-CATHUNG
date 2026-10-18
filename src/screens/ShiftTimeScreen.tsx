@@ -169,9 +169,6 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
             <p className={`text-xs mt-0.5 ${isNightMode ? 'text-slate-400' : 'text-slate-500'}`}>
               {employee.role} • {employee.department}
             </p>
-            <p className={`text-xs font-semibold mt-1 ${isNightMode ? 'text-amber-400' : 'text-indigo-600'}`}>
-              {t('hourlyRateLabel')}: {new Intl.NumberFormat('vi-VN').format(employee.hourlyRate)} {t('perHour')}
-            </p>
           </div>
         </div>
       </Card>

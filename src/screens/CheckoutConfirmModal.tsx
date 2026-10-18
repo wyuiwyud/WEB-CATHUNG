@@ -4,7 +4,6 @@ import { Modal, Button, Avatar, Badge, Input } from '../components/ui';
 import { AppleTimePicker } from '../components/AppleTimePicker';
 import {
   calculateShiftDuration,
-  formatCurrencyVND,
   getCurrentTimeString,
 } from '../utils/time';
 import {
@@ -56,11 +55,6 @@ export const CheckoutConfirmModal: React.FC<CheckoutConfirmModalProps> = ({
   const durationResult = useMemo(() => {
     return calculateShiftDuration(shift.startTime, selectedEndTime);
   }, [shift.startTime, selectedEndTime]);
-
-  const estimatedPay = useMemo(() => {
-    if (!durationResult.isValid) return 0;
-    return (durationResult.totalMinutes / 60) * employee.hourlyRate;
-  }, [durationResult, employee.hourlyRate]);
 
   if (!isOpen) return null;
 
@@ -151,13 +145,6 @@ export const CheckoutConfirmModal: React.FC<CheckoutConfirmModalProps> = ({
             <span className="text-slate-500">{t('totalShiftDuration')}</span>
             <span className="text-sm font-black text-indigo-600 tabular-nums">
               {durationResult.isValid ? durationResult.formattedString : '--:--'}
-            </span>
-          </div>
-
-          <div className="flex justify-between items-center">
-            <span className="text-slate-500">{t('estimatedSalary')}</span>
-            <span className="text-sm font-bold text-emerald-600 tabular-nums">
-              {formatCurrencyVND(estimatedPay)}
             </span>
           </div>
 
