@@ -184,18 +184,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [currentScreen, setCurrentScreen] = useState<AppScreen>('select-employee');
   const [newAddedShiftId, setNewAddedShiftId] = useState<string | null>(null);
 
-  const [isNightMode, setIsNightMode] = useState<boolean>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEYS.NIGHT_MODE);
-      if (saved !== null) {
-        return JSON.parse(saved);
-      }
-      // Mặc định ban đầu nếu chưa có ai vào làm (working === 0) -> là chế độ đóng cửa / ban đêm!
-      return true;
-    } catch {
-      return true;
-    }
-  });
+  const isNightMode = false;
+  const setIsNightMode = useCallback((_active: boolean) => {
+    // Tính năng trời tối đóng cửa đã được tắt hoàn toàn
+  }, []);
 
   const [language, setLanguage] = useState<'vi' | 'zh'>(() => {
     try {
@@ -238,9 +230,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (!shiftErr && dbShifts && isMounted) {
           const loadedShifts = dbShifts.map(mapDbShiftToLocal);
           setShifts(loadedShifts);
-          // Tự động kiểm tra: Có ai đang làm (status === 'working') thì trời sáng (isNightMode = false), ngược lại nếu 0 ai làm thì trời tối
-          const hasWorkingNow = loadedShifts.some((s) => s.status === 'working');
-          setIsNightMode(!hasWorkingNow);
         }
       } catch (err) {
         console.warn('Supabase initial fetch skipped or failed:', err);
@@ -283,32 +272,16 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             const newShift = mapDbShiftToLocal(payload.new);
             setShifts((prev) => {
               if (prev.some((s) => s.id === newShift.id)) return prev;
-              const next = [newShift, ...prev];
-              const hasWorking = next.some((s) => s.status === 'working');
-              setIsNightMode(!hasWorking);
-              return next;
+              return [newShift, ...prev];
             });
-            if (newShift.status === 'working') {
-              setIsNightMode(false);
-            }
             setNewAddedShiftId(newShift.id);
             setTimeout(() => setNewAddedShiftId(null), 2500);
           } else if (payload.eventType === 'UPDATE') {
             const updated = mapDbShiftToLocal(payload.new);
-            setShifts((prev) => {
-              const next = prev.map((s) => (s.id === updated.id ? updated : s));
-              const hasWorking = next.some((s) => s.status === 'working');
-              setIsNightMode(!hasWorking);
-              return next;
-            });
+            setShifts((prev) => prev.map((s) => (s.id === updated.id ? updated : s)));
           } else if (payload.eventType === 'DELETE') {
             const deletedId = (payload.old as any).id;
-            setShifts((prev) => {
-              const next = prev.filter((s) => s.id !== deletedId);
-              const hasWorking = next.some((s) => s.status === 'working');
-              setIsNightMode(!hasWorking);
-              return next;
-            });
+            setShifts((prev) => prev.filter((s) => s.id !== deletedId));
           }
         }
       )
@@ -329,13 +302,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, [language]);
 
+  // Đảm bảo xoá key NIGHT_MODE cũ nếu có trong trình duyệt
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEYS.NIGHT_MODE, JSON.stringify(isNightMode));
-    } catch (e) {
-      console.error('Failed to save night mode', e);
+      localStorage.removeItem(STORAGE_KEYS.NIGHT_MODE);
+    } catch {
+      // ignore
     }
-  }, [isNightMode]);
+  }, []);
 
   useEffect(() => {
     try {
@@ -436,8 +410,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           });
       }
 
-      // Người đầu tiên vào ca -> TẮT chế độ màn đêm, giao diện bừng sáng trở lại!
-      setIsNightMode(false);
+
 
       return { success: true, message: `Bắt đầu ca làm lúc ${startTime}`, shift: newShift };
     },
@@ -479,11 +452,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           });
       }
 
-      // Nếu sau khi tan ca này, không còn ai trong ca làm nữa -> BẬT chế độ màn đêm hoạt hình
-      const remainingWorking = shifts.filter((s) => s.id !== shiftId && s.status === 'working').length;
-      if (remainingWorking === 0) {
-        setIsNightMode(true);
-      }
+
 
       return {
         success: true,
@@ -558,8 +527,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setNewAddedShiftId(finalShift.id);
       setTimeout(() => setNewAddedShiftId(null), 2500);
 
-      // Xác nhận ca làm người đầu tiên thành công -> TẮT chế độ màn đêm, giao diện bừng sáng trở lại!
-      setIsNightMode(false);
+
 
       return {
         success: true,

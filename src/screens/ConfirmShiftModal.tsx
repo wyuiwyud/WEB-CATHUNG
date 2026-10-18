@@ -1,9 +1,8 @@
 import React from 'react';
 import type { Employee } from '../types';
-import { useStore } from '../store/useStore';
 import { Modal, Button, Avatar, Badge } from '../components/ui';
 import { formatDisplayDate } from '../utils/time';
-import { Clock, Calendar, CheckCircle, RotateCcw, FileText, Sun } from 'lucide-react';
+import { Clock, Calendar, CheckCircle, RotateCcw, FileText } from 'lucide-react';
 import { useTranslation } from '../i18n/translations';
 
 export interface ConfirmShiftData {
@@ -31,7 +30,6 @@ export const ConfirmShiftModal: React.FC<ConfirmShiftModalProps> = ({
   onConfirmSuccess,
   isLoading = false,
 }) => {
-  const { isNightMode } = useStore();
   const { t, language } = useTranslation();
 
   return (
@@ -98,21 +96,12 @@ export const ConfirmShiftModal: React.FC<ConfirmShiftModalProps> = ({
         </div>
 
         {/* Note / Tip */}
-        {isNightMode ? (
-          <div className="flex items-start gap-2 p-3 bg-amber-500/10 border border-amber-500/30 rounded-[14px] text-xs text-amber-900">
-            <Sun className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-            <p className="font-semibold text-amber-950">
-              {t('confirmWakeTip')}
-            </p>
-          </div>
-        ) : (
-          <div className="flex items-start gap-2 p-3 bg-emerald-50/70 border border-emerald-100 rounded-[14px] text-xs text-emerald-900">
-            <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-            <p>
-              {t('confirmAutoSaveTip')}
-            </p>
-          </div>
-        )}
+        <div className="flex items-start gap-2 p-3 bg-emerald-50/70 border border-emerald-100 rounded-[14px] text-xs text-emerald-900">
+          <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+          <p>
+            {t('confirmAutoSaveTip')}
+          </p>
+        </div>
 
         {/* 2 Big Action Buttons: [Chọn lại] & [Xác nhận] */}
         <div className="grid grid-cols-2 gap-3 pt-2">
@@ -131,16 +120,12 @@ export const ConfirmShiftModal: React.FC<ConfirmShiftModalProps> = ({
             type="button"
             variant="primary"
             size="lg"
-            leftIcon={isNightMode ? <Sun className="w-4 h-4 text-slate-950 fill-slate-950/20" /> : <CheckCircle className="w-4 h-4" />}
+            leftIcon={<CheckCircle className="w-4 h-4" />}
             onClick={onConfirmSuccess}
             isLoading={isLoading}
-            className={
-              isNightMode
-                ? 'bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 hover:from-amber-300 hover:to-orange-400 text-slate-950 font-black border border-amber-300 shadow-[0_8px_25px_rgba(245,158,11,0.35)]'
-                : 'shadow-indigo-500/25 font-bold'
-            }
+            className="shadow-indigo-500/25 font-bold"
           >
-            {isNightMode ? t('btnConfirmShiftWake') : t('btnConfirmShift')}
+            {t('btnConfirmShift')}
           </Button>
         </div>
       </div>

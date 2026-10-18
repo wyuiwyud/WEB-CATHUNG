@@ -23,7 +23,6 @@ function TimeTrackApp() {
     startShift,
     endShift,
     saveDirectShift,
-    isNightMode,
   } = useStore();
 
   // State for confirm modal
@@ -78,11 +77,7 @@ function TimeTrackApp() {
     if (res.success) {
       setIsConfirmModalOpen(false);
       setConfirmData(null);
-      toast.success(
-        isNightMode
-          ? t('toastCheckinWakeSuccess', { name: currentEmployee.name })
-          : t('toastCheckinSuccess', { name: currentEmployee.name })
-      );
+      toast.success(t('toastCheckinSuccess', { name: currentEmployee.name }));
       // Đóng menu và chuyển sang hiển thị Bảng giờ làm các thành viên khác
       setScreen('live-board');
     } else {
@@ -93,14 +88,9 @@ function TimeTrackApp() {
   // 1-touch Fast Check-in
   const handleFastCheckIn = (startTime: string) => {
     if (!currentEmployee) return;
-    const wasNight = isNightMode;
     const res = startShift(currentEmployee.id, startTime);
     if (res.success) {
-      toast.success(
-        wasNight
-          ? t('toastFastCheckinWake', { msg: res.message })
-          : res.message
-      );
+      toast.success(res.message);
       setScreen('live-board');
     } else {
       toast.error(res.message);
@@ -123,20 +113,10 @@ function TimeTrackApp() {
     : undefined;
 
   return (
-    <div
-      className={`min-h-screen relative overflow-x-hidden transition-colors duration-1000 font-sans antialiased selection:bg-indigo-500 selection:text-white ${
-        isNightMode ? 'bg-[#070A14] text-slate-100' : 'bg-[#F4F7FB] text-[#0F172A]'
-      }`}
-    >
+    <div className="min-h-screen relative overflow-x-hidden bg-[#F4F7FB] text-[#0F172A] font-sans antialiased selection:bg-indigo-500 selection:text-white">
       {/* 🌊 STATIC LIGHTWEIGHT AMBIENT GLOW (0% CPU, siêu mượt 60fps) */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-        <div
-          className={`absolute inset-0 transition-opacity duration-700 ${
-            isNightMode
-              ? 'bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,rgba(99,102,241,0.2),transparent_70%),radial-gradient(ellipse_60%_50%_at_100%_50%,rgba(245,158,11,0.12),transparent_70%)]'
-              : 'bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,rgba(99,102,241,0.1),transparent_70%),radial-gradient(ellipse_60%_50%_at_100%_50%,rgba(251,191,36,0.12),transparent_70%)]'
-          }`}
-        />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,rgba(99,102,241,0.1),transparent_70%),radial-gradient(ellipse_60%_50%_at_100%_50%,rgba(251,191,36,0.12),transparent_70%)]" />
       </div>
 
       <div className="relative z-10">
@@ -144,7 +124,7 @@ function TimeTrackApp() {
         <div className="w-full max-w-2xl mx-auto pt-3 px-4 sm:px-6 flex items-center justify-between">
           <div className="flex items-center gap-1.5 text-xs font-bold opacity-80 select-none">
             <span className="text-sm">🍢</span>
-            <span className={isNightMode ? 'text-amber-300' : 'text-slate-700'}>
+            <span className="text-slate-700">
               {language === 'zh' ? '吉兴烧烤 • 员工考勤' : 'Cát Hưng • Chấm công'}
             </span>
           </div>

@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import type { Employee, Shift } from '../types';
-import { useStore } from '../store/useStore';
 import { Card, Avatar, Button, Input } from '../components/ui';
 import { AppleTimePicker } from '../components/AppleTimePicker';
 import { CheckoutConfirmModal } from './CheckoutConfirmModal';
@@ -11,8 +10,6 @@ import {
   FileText,
   Calendar,
   LogOut,
-  Sun,
-  Moon,
 } from 'lucide-react';
 import {
   calculateShiftDuration,
@@ -48,7 +45,6 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
   onContinueToConfirm,
   onFastCheckOut,
 }) => {
-  const { isNightMode } = useStore();
   const { t, language } = useTranslation();
 
   // Realtime clock
@@ -106,45 +102,28 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
   };
 
   return (
-    <div className={`w-full max-w-lg mx-auto pb-14 pt-3 px-4 sm:px-6 transition-colors duration-1000 ${
-      isNightMode ? 'text-slate-100' : 'text-slate-900'
-    }`}>
+    <div className="w-full max-w-lg mx-auto pb-14 pt-3 px-4 sm:px-6 text-slate-900">
       {/* Top back button & date */}
       <div className="flex items-center justify-between mb-4">
         <button
           type="button"
           onClick={onBack}
-          className={`inline-flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-[12px] shadow-sm transition-all active:scale-95 min-h-[38px] ${
-            isNightMode
-              ? 'bg-slate-900 border border-slate-800 text-slate-200 hover:bg-slate-800'
-              : 'bg-white border border-slate-200/90 text-slate-600 hover:text-slate-900'
-          }`}
+          className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-[12px] shadow-sm transition-all active:scale-95 min-h-[38px] bg-white border border-slate-200/90 text-slate-600 hover:text-slate-900"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>{t('changeEmployeeBtn')}</span>
         </button>
 
-        {isNightMode ? (
-          <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-indigo-950/90 text-amber-300 border border-indigo-700/60 shadow-sm animate-pulse">
-            <Moon className="w-3.5 h-3.5 fill-amber-300/40" />
-            <span>{t('nightModeShiftBadge')}</span>
-          </span>
-        ) : (
-          <span className="text-xs text-slate-500 font-medium flex items-center gap-1">
-            <Calendar className="w-3.5 h-3.5" />
-            <span>{formatDisplayDate(language)}</span>
-          </span>
-        )}
+        <span className="text-xs text-slate-500 font-medium flex items-center gap-1">
+          <Calendar className="w-3.5 h-3.5" />
+          <span>{formatDisplayDate(language)}</span>
+        </span>
       </div>
 
       {/* Selected Employee Info Banner */}
       <Card
         padding="sm"
-        className={`mb-4 transition-all ${
-          isNightMode
-            ? 'bg-slate-900/90 border-slate-800 text-slate-100 shadow-md'
-            : 'bg-gradient-to-r from-white via-indigo-50/30 to-white border-indigo-100'
-        }`}
+        className="mb-4 transition-all bg-gradient-to-r from-white via-indigo-50/30 to-white border-indigo-100"
       >
         <div className="flex items-center gap-3">
           <Avatar
@@ -155,18 +134,16 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
           />
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <h2 className={`text-base sm:text-lg font-bold truncate ${
-                isNightMode ? 'text-white' : 'text-slate-900'
-              }`}>
+              <h2 className="text-base sm:text-lg font-bold truncate text-slate-900">
                 {employee.name}
               </h2>
               {employee.isAdmin && (
-                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-amber-400/20 text-amber-300 border border-amber-400/40">
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-amber-400/20 text-amber-700 border border-amber-400/40">
                   {t('adminBadge')}
                 </span>
               )}
             </div>
-            <p className={`text-xs mt-0.5 ${isNightMode ? 'text-slate-400' : 'text-slate-500'}`}>
+            <p className="text-xs mt-0.5 text-slate-500">
               {employee.role} • {employee.department}
             </p>
           </div>
@@ -326,25 +303,21 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
           {/* Calculation Result */}
           <div>
             {durationResult.isValid ? (
-              <div className={`p-4 rounded-[22px] transition-all ${
-                isNightMode
-                  ? 'liquid-glass-dark text-slate-100'
-                  : 'liquid-glass text-slate-800'
-              }`}>
+              <div className="p-4 rounded-[22px] transition-all liquid-glass text-slate-800">
                 <div>
-                  <p className={`text-xs font-medium ${isNightMode ? 'text-slate-400' : 'text-slate-500'}`}>{t('totalShiftDuration')}</p>
-                  <p className={`text-xl font-black tabular-nums ${isNightMode ? 'text-amber-400' : 'text-indigo-600'}`}>
+                  <p className="text-xs font-medium text-slate-500">{t('totalShiftDuration')}</p>
+                  <p className="text-xl font-black tabular-nums text-indigo-600">
                     {durationResult.formattedString}
                   </p>
                 </div>
                 <div className="text-right">
                   <p className="text-[11px] text-slate-400 font-medium">{t('selectedTimeRange')}</p>
-                  <p className={`text-xs font-bold tabular-nums ${isNightMode ? 'text-slate-200' : 'text-slate-800'}`}>
+                  <p className="text-xs font-bold tabular-nums text-slate-800">
                     {startTime} ➔ {endTime}
                   </p>
                   {durationResult.isOvernight && (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30 mt-1">
-                      <AlertTriangle className="w-3 h-3 text-amber-400" />
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-700 border border-amber-400/30 mt-1">
+                      <AlertTriangle className="w-3 h-3 text-amber-500" />
                       <span>{t('overnightShiftBadge')}</span>
                     </span>
                   )}
@@ -377,19 +350,13 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
               fullWidth
               disabled={!durationResult.isValid}
               onClick={handleConfirmClick}
-              rightIcon={isNightMode ? <Sun className="w-4 h-4 text-slate-950 fill-slate-950/20" /> : <Sparkles className="w-4 h-4" />}
-              className={`py-3.5 text-base font-bold transition-all ${
-                isNightMode
-                  ? 'bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 hover:from-amber-300 hover:to-orange-400 text-slate-950 border border-amber-300 shadow-[0_8px_25px_rgba(245,158,11,0.35)]'
-                  : 'shadow-indigo-500/25'
-              }`}
+              rightIcon={<Sparkles className="w-4 h-4" />}
+              className="py-3.5 text-base font-bold transition-all shadow-indigo-500/25"
             >
-              {isNightMode ? t('btnContinueToConfirmWake') : t('btnContinueToConfirm')}
+              {t('btnContinueToConfirm')}
             </Button>
             <p className="text-[11px] text-center text-slate-400 mt-2">
-              {isNightMode
-                ? t('continueWakeHint')
-                : t('continueHint')}
+              {t('continueHint')}
             </p>
           </div>
         </div>
