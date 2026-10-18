@@ -124,14 +124,25 @@ const mapDbShiftToLocal = (row: any): Shift => {
   };
 };
 
+const toIsoTimestamp = (timeStr?: string, dateStr?: string) => {
+  if (!timeStr) return null;
+  if (timeStr.includes('T')) return timeStr;
+  const d = dateStr || getTodayDateString();
+  try {
+    return new Date(`${d}T${timeStr}:00`).toISOString();
+  } catch {
+    return new Date().toISOString();
+  }
+};
+
 const mapLocalShiftToDb = (s: Shift) => {
   const durationHours = s.totalMinutes ? Number((s.totalMinutes / 60).toFixed(2)) : null;
   return {
     id: s.id,
     employee_id: s.employeeId,
     employee_name: s.employeeName,
-    start_time: s.startTime,
-    end_time: s.endTime || null,
+    start_time: toIsoTimestamp(s.startTime, s.date) || new Date().toISOString(),
+    end_time: toIsoTimestamp(s.endTime, s.date),
     duration_hours: durationHours,
     status: s.status,
     note: s.note || null,
