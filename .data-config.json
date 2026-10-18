@@ -1,0 +1,5 @@
+{
+  "project_ref": "oimjerjawlrltydsssbw",
+  "env_file": ".env.local",
+  "prefix": "VITE_"
+}

@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import type { Employee, Shift, SalaryItem } from '../types';
 import { INITIAL_EMPLOYEES, INITIAL_SHIFTS } from '../data/mockData';
 import { calculateShiftDuration, getTodayDateString } from '../utils/time';
+import { supabase, isSupabaseConfigured } from '../utils/supabase';
 import * as XLSX from 'xlsx';
 
 export type AppScreen = 'select-employee' | 'shift-time' | 'live-board';
@@ -13,6 +14,7 @@ interface StoreContextType {
   currentEmployee: Employee | null;
   currentScreen: AppScreen;
   newAddedShiftId: string | null;
+  isSyncing: boolean;
   
   // Navigation & Selection
   selectEmployee: (emp: Employee | null) => void;
@@ -62,7 +64,67 @@ const STORAGE_KEYS = {
   LANGUAGE: 'timetrack_cathung_language_v2',
 };
 
+// Helper mapper for Supabase <-> Local models
+const mapDbEmployeeToLocal = (row: any): Employee => ({
+  id: row.id,
+  name: row.name,
+  role: row.role,
+  department: row.department,
+  hourlyRate: Number(row.hourly_rate) || 50000,
+  isAdmin: Boolean(row.is_admin),
+  color: row.color || '#6366F1',
+  pin: row.pin || '1234',
+  defaultShift: {
+    start: row.default_shift_start || '08:00',
+    end: row.default_shift_end || '17:00',
+  },
+});
+
+const mapLocalEmployeeToDb = (emp: Employee) => ({
+  id: emp.id,
+  name: emp.name,
+  role: emp.role,
+  department: emp.department,
+  hourly_rate: emp.hourlyRate,
+  is_admin: emp.isAdmin,
+  color: emp.color,
+  pin: emp.pin,
+  default_shift_start: emp.defaultShift?.start || '08:00',
+  default_shift_end: emp.defaultShift?.end || '17:00',
+});
+
+const mapDbShiftToLocal = (row: any): Shift => ({
+  id: row.id,
+  employeeId: row.employee_id,
+  employeeName: row.employee_name,
+  department: row.department,
+  date: row.date,
+  startTime: row.start_time,
+  endTime: row.end_time || undefined,
+  totalMinutes: Number(row.total_minutes) || 0,
+  status: row.status,
+  note: row.note || undefined,
+  editReason: row.edit_reason || undefined,
+  createdAt: row.created_at,
+});
+
+const mapLocalShiftToDb = (s: Shift) => ({
+  id: s.id,
+  employee_id: s.employeeId,
+  employee_name: s.employeeName,
+  department: s.department,
+  date: s.date,
+  start_time: s.startTime,
+  end_time: s.endTime || null,
+  total_minutes: s.totalMinutes || 0,
+  status: s.status,
+  note: s.note || null,
+  edit_reason: s.editReason || null,
+});
+
 export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
+
   // Load initial data from localStorage if exists
   const [employees, setEmployees] = useState<Employee[]>(() => {
     try {
@@ -95,28 +157,120 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [currentScreen, setCurrentScreen] = useState<AppScreen>('select-employee');
   const [newAddedShiftId, setNewAddedShiftId] = useState<string | null>(null);
 
-  // Chế độ màn đêm hoạt hình: Bắt đầu khi người cuối cùng bấm tan ca (working === 0),
-  // và CHỈ TẮT (giao diện sáng trở lại) khi người đầu tiên xác nhận ca làm thành công!
   const [isNightMode, setIsNightMode] = useState<boolean>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.NIGHT_MODE);
-      if (saved !== null) return JSON.parse(saved);
-      const working = INITIAL_SHIFTS.filter((s) => s.status === 'working').length;
-      const completed = INITIAL_SHIFTS.filter((s) => s.status === 'completed').length;
-      return completed > 0 && working === 0;
+      if (saved !== null) {
+        return JSON.parse(saved);
+      }
+      return false;
     } catch {
       return false;
     }
   });
 
-  // Language switcher state: Vietnamese ('vi') or Chinese ('zh')
   const [language, setLanguage] = useState<'vi' | 'zh'>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.LANGUAGE);
-      if (saved === 'vi' || saved === 'zh') return saved;
-    } catch {}
-    return 'vi';
+      return (saved === 'zh' || saved === 'vi') ? saved : 'vi';
+    } catch {
+      return 'vi';
+    }
   });
+
+  // =========================================================================
+  // SUPABASE REALTIME SYNC (FETCH + REALTIME SUBSCRIPTIONS)
+  // =========================================================================
+  useEffect(() => {
+    if (!isSupabaseConfigured || !supabase) return;
+    const client = supabase;
+
+    let isMounted = true;
+
+    const fetchInitialCloudData = async () => {
+      try {
+        setIsSyncing(true);
+
+        // 1. Fetch Employees
+        const { data: dbEmployees, error: empErr } = await client
+          .from('employees')
+          .select('*')
+          .order('id', { ascending: true });
+
+        if (!empErr && dbEmployees && dbEmployees.length > 0 && isMounted) {
+          setEmployees(dbEmployees.map(mapDbEmployeeToLocal));
+        }
+
+        // 2. Fetch Shifts
+        const { data: dbShifts, error: shiftErr } = await client
+          .from('shifts')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (!shiftErr && dbShifts && isMounted) {
+          setShifts(dbShifts.map(mapDbShiftToLocal));
+        }
+      } catch (err) {
+        console.warn('Supabase initial fetch skipped or failed:', err);
+      } finally {
+        if (isMounted) setIsSyncing(false);
+      }
+    };
+
+    fetchInitialCloudData();
+
+    // Setup Realtime Channels
+    const channel = client
+      .channel('cathung-realtime-sync')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'employees' },
+        (payload) => {
+          if (!isMounted) return;
+          if (payload.eventType === 'INSERT') {
+            const newEmp = mapDbEmployeeToLocal(payload.new);
+            setEmployees((prev) => {
+              if (prev.some((e) => e.id === newEmp.id)) return prev;
+              return [...prev, newEmp];
+            });
+          } else if (payload.eventType === 'UPDATE') {
+            const updated = mapDbEmployeeToLocal(payload.new);
+            setEmployees((prev) => prev.map((e) => (e.id === updated.id ? updated : e)));
+          } else if (payload.eventType === 'DELETE') {
+            const deletedId = (payload.old as any).id;
+            setEmployees((prev) => prev.filter((e) => e.id !== deletedId));
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'shifts' },
+        (payload) => {
+          if (!isMounted) return;
+          if (payload.eventType === 'INSERT') {
+            const newShift = mapDbShiftToLocal(payload.new);
+            setShifts((prev) => {
+              if (prev.some((s) => s.id === newShift.id)) return prev;
+              return [newShift, ...prev];
+            });
+            setNewAddedShiftId(newShift.id);
+            setTimeout(() => setNewAddedShiftId(null), 2500);
+          } else if (payload.eventType === 'UPDATE') {
+            const updated = mapDbShiftToLocal(payload.new);
+            setShifts((prev) => prev.map((s) => (s.id === updated.id ? updated : s)));
+          } else if (payload.eventType === 'DELETE') {
+            const deletedId = (payload.old as any).id;
+            setShifts((prev) => prev.filter((s) => s.id !== deletedId));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      isMounted = false;
+      client.removeChannel(channel);
+    };
+  }, []);
 
   // Sync to localStorage
   useEffect(() => {
@@ -219,9 +373,20 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         createdAt: new Date().toISOString(),
       };
 
+      // Optimistic update locally
       setShifts((prev) => [newShift, ...prev]);
       setNewAddedShiftId(newShift.id);
       setTimeout(() => setNewAddedShiftId(null), 2500);
+
+      // Save to Supabase Cloud
+      if (supabase) {
+        supabase
+          .from('shifts')
+          .insert(mapLocalShiftToDb(newShift))
+          .then(({ error }) => {
+            if (error) console.error('Cloud insert shift failed:', error.message);
+          });
+      }
 
       // Người đầu tiên vào ca -> TẮT chế độ màn đêm, giao diện bừng sáng trở lại!
       setIsNightMode(false);
@@ -250,9 +415,21 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         note: note || shift.note,
       };
 
+      // Optimistic local update
       setShifts((prev) => prev.map((s) => (s.id === shiftId ? updatedShift : s)));
       setNewAddedShiftId(updatedShift.id);
       setTimeout(() => setNewAddedShiftId(null), 2500);
+
+      // Save to Supabase Cloud
+      if (supabase) {
+        supabase
+          .from('shifts')
+          .update(mapLocalShiftToDb(updatedShift))
+          .eq('id', shiftId)
+          .then(({ error }) => {
+            if (error) console.error('Cloud update shift failed:', error.message);
+          });
+      }
 
       // Nếu sau khi tan ca này, không còn ai trong ca làm nữa -> BẬT chế độ màn đêm hoạt hình
       const remainingWorking = shifts.filter((s) => s.id !== shiftId && s.status === 'working').length;
@@ -294,6 +471,16 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           note: data.note || existing.note,
         };
         setShifts((prev) => prev.map((s) => (s.id === existing.id ? finalShift : s)));
+
+        if (supabase) {
+          supabase
+            .from('shifts')
+            .update(mapLocalShiftToDb(finalShift))
+            .eq('id', existing.id)
+            .then(({ error }) => {
+              if (error) console.error('Cloud update shift failed:', error.message);
+            });
+        }
       } else {
         finalShift = {
           id: `shift-${Date.now()}`,
@@ -309,6 +496,15 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           createdAt: new Date().toISOString(),
         };
         setShifts((prev) => [finalShift, ...prev]);
+
+        if (supabase) {
+          supabase
+            .from('shifts')
+            .insert(mapLocalShiftToDb(finalShift))
+            .then(({ error }) => {
+              if (error) console.error('Cloud insert shift failed:', error.message);
+            });
+        }
       }
 
       setNewAddedShiftId(finalShift.id);
@@ -329,52 +525,92 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Admin operations
   const deleteShift = useCallback((shiftId: string) => {
     setShifts((prev) => prev.filter((s) => s.id !== shiftId));
+    if (supabase) {
+      supabase.from('shifts').delete().eq('id', shiftId).then(({ error }) => {
+        if (error) console.error('Cloud delete shift failed:', error.message);
+      });
+    }
   }, []);
 
   const updateShiftHours = useCallback(
     (shiftId: string, startTime: string, endTime: string, reason: string) => {
       const duration = calculateShiftDuration(startTime, endTime);
       setShifts((prev) =>
-        prev.map((s) =>
-          s.id === shiftId
-            ? {
-                ...s,
-                startTime,
-                endTime,
-                totalMinutes: duration.totalMinutes,
-                editReason: reason,
-              }
-            : s
-        )
+        prev.map((s) => {
+          if (s.id !== shiftId) return s;
+          const updated: Shift = {
+            ...s,
+            startTime,
+            endTime,
+            totalMinutes: duration.totalMinutes,
+            editReason: reason,
+          };
+          if (supabase) {
+            supabase
+              .from('shifts')
+              .update(mapLocalShiftToDb(updated))
+              .eq('id', shiftId)
+              .then(({ error }) => {
+                if (error) console.error('Cloud update shift failed:', error.message);
+              });
+          }
+          return updated;
+        })
       );
     },
     []
   );
 
-  // Employee CRUD
-  const addEmployee = useCallback((emp: Omit<Employee, 'id'>) => {
-    const id = `nv${Date.now().toString().slice(-4)}`;
-    const newEmp: Employee = { ...emp, id };
+  // Employee Management
+  const addEmployee = useCallback((empData: Omit<Employee, 'id'>) => {
+    const newEmp: Employee = {
+      ...empData,
+      id: `nv-${Date.now().toString().slice(-4)}`,
+    };
     setEmployees((prev) => [...prev, newEmp]);
+    if (supabase) {
+      supabase.from('employees').insert(mapLocalEmployeeToDb(newEmp)).then(({ error }) => {
+        if (error) console.error('Cloud insert employee failed:', error.message);
+      });
+    }
   }, []);
 
   const updateEmployee = useCallback((id: string, updates: Partial<Employee>) => {
-    setEmployees((prev) => prev.map((e) => (e.id === id ? { ...e, ...updates } : e)));
+    setEmployees((prev) =>
+      prev.map((e) => {
+        if (e.id !== id) return e;
+        const updated = { ...e, ...updates };
+        if (supabase) {
+          supabase
+            .from('employees')
+            .update(mapLocalEmployeeToDb(updated))
+            .eq('id', id)
+            .then(({ error }) => {
+              if (error) console.error('Cloud update employee failed:', error.message);
+            });
+        }
+        return updated;
+      })
+    );
   }, []);
 
   const deleteEmployee = useCallback((id: string) => {
     setEmployees((prev) => prev.filter((e) => e.id !== id));
+    if (supabase) {
+      supabase.from('employees').delete().eq('id', id).then(({ error }) => {
+        if (error) console.error('Cloud delete employee failed:', error.message);
+      });
+    }
   }, []);
 
-  // Salary calculations: Tự động tính toán trực tiếp từ tất cả các ca đã làm
+  // Compute Salary Table
   const getSalaryData = useCallback((): SalaryItem[] => {
     return employees.map((emp) => {
       const empShifts = shifts.filter(
-        (s) => s.employeeId === emp.id && s.totalMinutes > 0 && s.status !== 'working'
+        (s) => s.employeeId === emp.id && s.status === 'completed'
       );
-      const totalMinutes = empShifts.reduce((acc, curr) => acc + curr.totalMinutes, 0);
-      const totalHours = totalMinutes / 60;
-      const totalAmount = totalHours * emp.hourlyRate;
+      const totalMinutes = empShifts.reduce((acc, curr) => acc + (curr.totalMinutes || 0), 0);
+      const totalAmount = Math.round((totalMinutes / 60) * emp.hourlyRate);
 
       return {
         employeeId: emp.id,
@@ -455,6 +691,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         currentEmployee,
         currentScreen,
         newAddedShiftId,
+        isSyncing,
         selectEmployee,
         setScreen: setCurrentScreen,
         getEmployeeTodayShift,
