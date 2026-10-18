@@ -66,13 +66,13 @@ const STORAGE_KEYS = {
 
 // Helper mapper for Supabase <-> Local models
 const mapDbEmployeeToLocal = (row: any): Employee => ({
-  id: row.id,
-  name: row.name,
-  role: row.role,
-  department: row.department,
+  id: String(row.id),
+  name: row.name || 'Nhân viên',
+  role: row.role || 'Nhân viên',
+  department: row.department || (row.role?.includes('Bếp') ? 'Bếp' : row.role?.includes('Quản lý') ? 'Quản lý' : 'Phục vụ bàn'),
   hourlyRate: Number(row.hourly_rate) || 50000,
-  isAdmin: Boolean(row.is_admin),
-  color: row.color || '#6366F1',
+  isAdmin: Boolean(row.is_admin || row.role?.includes('Quản lý')),
+  color: row.color || (row.role?.includes('Quản lý') ? '#E11D48' : '#6366F1'),
   pin: row.pin || '1234',
   defaultShift: {
     start: row.default_shift_start || '08:00',
@@ -84,43 +84,59 @@ const mapLocalEmployeeToDb = (emp: Employee) => ({
   id: emp.id,
   name: emp.name,
   role: emp.role,
-  department: emp.department,
-  hourly_rate: emp.hourlyRate,
-  is_admin: emp.isAdmin,
-  color: emp.color,
-  pin: emp.pin,
-  default_shift_start: emp.defaultShift?.start || '08:00',
-  default_shift_end: emp.defaultShift?.end || '17:00',
+  avatar: emp.role?.includes('Quản lý') ? '👑' : emp.role?.includes('Bếp') ? '👨‍🍳' : '🧑‍🍳',
+  active: true,
 });
 
-const mapDbShiftToLocal = (row: any): Shift => ({
-  id: row.id,
-  employeeId: row.employee_id,
-  employeeName: row.employee_name,
-  department: row.department,
-  date: row.date,
-  startTime: row.start_time,
-  endTime: row.end_time || undefined,
-  totalMinutes: Number(row.total_minutes) || 0,
-  status: row.status,
-  note: row.note || undefined,
-  editReason: row.edit_reason || undefined,
-  createdAt: row.created_at,
-});
+const mapDbShiftToLocal = (row: any): Shift => {
+  // convert ISO string or time string
+  const getHHmm = (val?: string) => {
+    if (!val) return '';
+    if (val.length === 5 && val.includes(':')) return val;
+    try {
+      const d = new Date(val);
+      if (!isNaN(d.getTime())) {
+        return d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', hour12: false });
+      }
+    } catch {}
+    return val;
+  };
 
-const mapLocalShiftToDb = (s: Shift) => ({
-  id: s.id,
-  employee_id: s.employeeId,
-  employee_name: s.employeeName,
-  department: s.department,
-  date: s.date,
-  start_time: s.startTime,
-  end_time: s.endTime || null,
-  total_minutes: s.totalMinutes || 0,
-  status: s.status,
-  note: s.note || null,
-  edit_reason: s.editReason || null,
-});
+  const startTimeStr = getHHmm(row.start_time) || row.start_time || '08:00';
+  const endTimeStr = row.end_time ? (getHHmm(row.end_time) || row.end_time) : undefined;
+  const totalMins = row.duration_hours ? Math.round(Number(row.duration_hours) * 60) : (Number(row.total_minutes) || 0);
+
+  const shiftDate = row.date || (row.created_at ? new Date(row.created_at).toISOString().split('T')[0] : getTodayDateString());
+
+  return {
+    id: String(row.id),
+    employeeId: String(row.employee_id),
+    employeeName: row.employee_name || 'Nhân viên',
+    department: row.department || 'Bộ phận chung',
+    date: shiftDate,
+    startTime: startTimeStr,
+    endTime: endTimeStr,
+    totalMinutes: totalMins,
+    status: (row.status === 'completed' || row.status === 'working') ? row.status : 'completed',
+    note: row.note || undefined,
+    editReason: row.edit_reason || undefined,
+    createdAt: row.created_at || new Date().toISOString(),
+  };
+};
+
+const mapLocalShiftToDb = (s: Shift) => {
+  const durationHours = s.totalMinutes ? Number((s.totalMinutes / 60).toFixed(2)) : null;
+  return {
+    id: s.id,
+    employee_id: s.employeeId,
+    employee_name: s.employeeName,
+    start_time: s.startTime,
+    end_time: s.endTime || null,
+    duration_hours: durationHours,
+    status: s.status,
+    note: s.note || null,
+  };
+};
 
 export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
