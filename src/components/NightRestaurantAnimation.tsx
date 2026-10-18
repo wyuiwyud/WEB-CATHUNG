@@ -1,15 +1,13 @@
-import React from 'react';
-import { Moon, Sparkles, Flame, Sun } from 'lucide-react';
+import { Moon, Flame } from 'lucide-react';
 import { useTranslation } from '../i18n/translations';
 
 interface NightRestaurantAnimationProps {
-  onStartNewShift: () => void;
+  onStartNewShift?: () => void;
   completedCount: number;
   totalHoursFormatted: string;
 }
 
 export const NightRestaurantAnimation: React.FC<NightRestaurantAnimationProps> = ({
-  onStartNewShift,
   completedCount,
   totalHoursFormatted,
 }) => {
@@ -147,22 +145,6 @@ export const NightRestaurantAnimation: React.FC<NightRestaurantAnimationProps> =
               </span>
             </div>
           </div>
-        </div>
-
-        {/* Wake-up Button: Mở cửa nhà hàng / Chấm công ca mới */}
-        <div className="w-full max-w-xs space-y-2">
-          <button
-            type="button"
-            onClick={onStartNewShift}
-            className="w-full py-3.5 px-5 rounded-[16px] bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-black text-sm uppercase tracking-wider shadow-[0_8px_25px_rgba(245,158,11,0.35)] transition-all active:scale-95 flex items-center justify-center gap-2 group cursor-pointer"
-          >
-            <Sun className="w-5 h-5 text-slate-950 fill-slate-950/20 group-hover:rotate-45 transition-transform" />
-            <span>{t('btnWakeUpRestaurant')}</span>
-          </button>
-          <p className="text-[11px] text-slate-400 text-center flex items-center justify-center gap-1">
-            <Sparkles className="w-3 h-3 text-amber-400" />
-            <span>{t('wakeUpHint')}</span>
-          </p>
         </div>
       </div>
     </div>

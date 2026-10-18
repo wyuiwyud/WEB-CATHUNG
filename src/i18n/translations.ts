@@ -52,9 +52,9 @@ export const translations = {
     checkoutHint: 'Chạm vào đây khi làm xong',
     checkoutSubtext: 'Chạm nút siêu to trên để kết thúc ca làm, chọn giờ tan ca và chốt giờ làm',
     btnStartWorkingNow: 'BẮT ĐẦU VÀO CA LÚC',
-    btnStartWorkingWake: 'BẮT ĐẦU VÀO CA LÚC {time} (MỞ CỬA QUÁN)',
+    btnStartWorkingWake: 'BẮT ĐẦU VÀO CA LÚC {time}',
     startWorkingHint: 'Nhấn vào đây để bắt đầu tính giờ làm ngay bây giờ',
-    startWorkingWakeHint: 'Nhấn vào đây để mở cửa nhà hàng và bắt đầu tính giờ ca đầu tiên',
+    startWorkingWakeHint: 'Nhấn vào đây để bắt đầu tính giờ làm ngay bây giờ',
     quickDurationTitle: 'Chọn ca nhanh theo giờ làm quán nướng:',
     oneTouchDone: '1 chạm chốt ca',
     shift3h: 'Ca 3h',
@@ -76,9 +76,9 @@ export const translations = {
     shiftNoteLabel: 'Ghi chú ca làm (Tùy chọn)',
     shiftNotePlaceholder: 'Ví dụ: Tăng ca tối, đổi ca cho bạn...',
     btnContinueToConfirm: 'TIẾP TỤC XÁC NHẬN →',
-    btnContinueToConfirmWake: 'TIẾP TỤC XÁC NHẬN (MỞ CỬA QUÁN) →',
+    btnContinueToConfirmWake: 'TIẾP TỤC XÁC NHẬN →',
     continueHint: 'Xem lại thông tin và xác nhận ca làm ở bước tiếp theo',
-    continueWakeHint: 'Kiểm tra thông tin trước khi xác nhận mở cửa hoạt động ca làm',
+    continueWakeHint: 'Xem lại thông tin và xác nhận ca làm ở bước tiếp theo',
 
     // Checkout Modal
     checkoutModalTitle: 'Xác Nhận Giờ Tan Ca',
@@ -104,16 +104,16 @@ export const translations = {
     estimatedSalary: 'Lương ca ước tính:',
     yourNoteLabel: 'Ghi chú của bạn:',
     confirmAutoSaveTip: 'Sau khi xác nhận, ca làm việc sẽ được tự động chốt và lưu vào Bảng giờ làm hôm nay.',
-    confirmWakeTip: 'Đây là ca mở cửa! Sau khi bấm xác nhận, nhà hàng Cát Hưng sẽ bừng sáng đèn và bắt đầu hoạt động.',
+    confirmWakeTip: 'Sau khi bấm xác nhận, ca làm việc sẽ được lưu vào Bảng giờ làm.',
     btnEditAgain: 'Chọn lại',
     btnConfirmShift: 'Xác nhận',
-    btnConfirmShiftWake: 'Xác nhận & Mở quán',
+    btnConfirmShiftWake: 'Xác nhận',
 
     // Live Board Screen
     boardNightTitle: 'Đêm khuya — Toàn bộ ca đã kết thúc',
     adminAndSalaryBtn: 'Quản trị & Lương',
     newCheckinBtn: 'Chấm công tiếp',
-    openShopBtn: 'Mở cửa quán',
+    openShopBtn: 'Chấm công mới',
     searchInBoardPlaceholder: 'Tìm theo tên thành viên...',
     filterAll: 'Tất cả',
     filterWorking: 'Đang làm',
@@ -123,7 +123,7 @@ export const translations = {
     countingTime: 'Đang đếm giờ...',
     noMemberInCategory: 'Không có thành viên nào trong danh mục này',
     floatingNewCheckinBtn: 'CHẤM CÔNG THÊM THÀNH VIÊN',
-    floatingOpenShopBtn: 'MỞ CỬA QUÁN • CHẤM CÔNG MỚI',
+    floatingOpenShopBtn: 'CHẤM CÔNG THÀNH VIÊN MỚI',
 
     // Night Animation
     nightClosedTitle: 'Quán Đã Tắt Đèn Nghỉ Ngơi',
