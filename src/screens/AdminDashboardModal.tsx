@@ -22,6 +22,7 @@ import { formatCurrencyVND, formatDuration, calculateShiftDuration } from '../ut
 import { useToast } from '../components/ui/Toast';
 import { useTranslation } from '../i18n/translations';
 import { DuyShiftTableModal } from '../components/DuyShiftTableModal';
+import { WeeklyOffSlotBoard } from '../components/WeeklyOffSlotBoard';
 
 interface AdminDashboardModalProps {
   isOpen: boolean;
@@ -44,6 +45,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
     getSalaryData,
     exportShiftsExcel,
     exportSalaryExcel,
+    offSlots,
   } = useStore();
 
   // Authentication State
@@ -54,7 +56,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   const [lockoutTimer, setLockoutTimer] = useState(0);
 
   // Active Admin Tab
-  const [activeTab, setActiveTab] = useState<'shifts' | 'salary' | 'staff'>('shifts');
+  const [activeTab, setActiveTab] = useState<'shifts' | 'salary' | 'staff' | 'offSlots'>('shifts');
 
   // Shift Table Modal (cho từng thành viên)
   const [isDuyTableOpen, setIsDuyTableOpen] = useState(false);
@@ -359,6 +361,18 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
             >
               <Users className="w-4 h-4" />
               <span>{t('tabStaffManage')} ({employees.length})</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('offSlots')}
+              className={`pb-2.5 px-1 transition-all border-b-2 flex items-center gap-1.5 ${
+                activeTab === 'offSlots'
+                  ? 'border-indigo-600 text-indigo-600'
+                  : 'border-transparent text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              <CalendarDays className="w-4 h-4" />
+              <span>{language === 'zh' ? '公休排班' : 'Lịch đăng ký OFF'} ({offSlots.length})</span>
             </button>
           </div>
 
@@ -764,6 +778,13 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* TAB 4: BẢNG ĐĂNG KÝ SLOT OFF TUẦN */}
+          {activeTab === 'offSlots' && (
+            <div className="space-y-4">
+              <WeeklyOffSlotBoard />
             </div>
           )}
         </div>

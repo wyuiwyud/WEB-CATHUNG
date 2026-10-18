@@ -5,6 +5,7 @@ import type { Employee } from '../types';
 import { Card, Avatar, Badge } from '../components/ui';
 import { Search, ChevronRight, Flame, Users, Calendar, ArrowRight } from 'lucide-react';
 import { formatDisplayDate } from '../utils/time';
+import { WeeklyOffSlotBoard } from '../components/WeeklyOffSlotBoard';
 
 interface SelectEmployeeScreenProps {
   onSelectEmployee: (emp: Employee) => void;
@@ -224,6 +225,10 @@ export const SelectEmployeeScreen: React.FC<SelectEmployeeScreenProps> = ({
           )}
         </div>
       </div>
+
+      {/* BẢNG ĐĂNG KÝ SLOT NGHỈ (OFF) TRONG TUẦN Ở PHÍA DƯỚI */}
+      <WeeklyOffSlotBoard />
     </div>
   );
 };
+

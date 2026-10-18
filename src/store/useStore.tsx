@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import type { Employee, Shift, SalaryItem } from '../types';
-import { INITIAL_EMPLOYEES, INITIAL_SHIFTS } from '../data/mockData';
+import type { Employee, Shift, SalaryItem, OffSlotRegistration } from '../types';
+import { INITIAL_EMPLOYEES, INITIAL_SHIFTS, INITIAL_OFF_SLOTS } from '../data/mockData';
 import { calculateShiftDuration, getTodayDateString } from '../utils/time';
 import { supabase, isSupabaseConfigured } from '../utils/supabase';
 import * as XLSX from 'xlsx';
@@ -52,6 +52,20 @@ interface StoreContextType {
   // Language state (Vietnamese 'vi' | Chinese 'zh')
   language: 'vi' | 'zh';
   setLanguage: (lang: 'vi' | 'zh') => void;
+
+  // OFF Slot Registration
+  offSlots: OffSlotRegistration[];
+  maxSlotsPerDay: number;
+  setMaxSlotsPerDay: (limit: number) => void;
+  registerOffSlot: (data: {
+    weekKey: string;
+    dateStr: string;
+    dayOfWeek: number;
+    dayLabel: string;
+    employeeId: string;
+    reason?: string;
+  }) => { success: boolean; message: string; slot?: OffSlotRegistration };
+  cancelOffSlot: (slotId: string) => { success: boolean; message: string };
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -62,6 +76,8 @@ const STORAGE_KEYS = {
   RECENT_IDS: 'timetrack_cathung_recent_v2',
   NIGHT_MODE: 'timetrack_cathung_night_mode_v2',
   LANGUAGE: 'timetrack_cathung_language_v2',
+  OFF_SLOTS: 'timetrack_cathung_off_slots_v2',
+  MAX_OFF_SLOTS: 'timetrack_cathung_max_off_slots_v2',
 };
 
 // Helper mapper for Supabase <-> Local models
@@ -213,6 +229,43 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       return 'vi';
     }
   });
+
+  // OFF Slot Registrations state
+  const [offSlots, setOffSlots] = useState<OffSlotRegistration[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.OFF_SLOTS);
+      return saved ? JSON.parse(saved) : INITIAL_OFF_SLOTS;
+    } catch {
+      return INITIAL_OFF_SLOTS;
+    }
+  });
+
+  const [maxSlotsPerDay, setMaxSlotsPerDayState] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.MAX_OFF_SLOTS);
+      return saved ? Number(saved) || 2 : 2;
+    } catch {
+      return 2;
+    }
+  });
+
+  const setMaxSlotsPerDay = useCallback((limit: number) => {
+    setMaxSlotsPerDayState(limit);
+    try {
+      localStorage.setItem(STORAGE_KEYS.MAX_OFF_SLOTS, String(limit));
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEYS.OFF_SLOTS, JSON.stringify(offSlots));
+    } catch (e) {
+      console.error(e);
+    }
+  }, [offSlots]);
+
 
   // =========================================================================
   // SUPABASE REALTIME SYNC (FETCH + REALTIME SUBSCRIPTIONS)
@@ -714,6 +767,112 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     XLSX.writeFile(workbook, `Bang_Luong_CatHung_${getTodayDateString()}.xlsx`);
   }, [getSalaryData]);
 
+  // =========================================================================
+  // WEEKLY OFF SLOT REGISTRATION
+  // =========================================================================
+  const registerOffSlot = useCallback(
+    (data: {
+      weekKey: string;
+      dateStr: string;
+      dayOfWeek: number;
+      dayLabel: string;
+      employeeId: string;
+      reason?: string;
+    }) => {
+      const emp = employees.find((e) => e.id === data.employeeId);
+      if (!emp) {
+        return { success: false, message: 'Không tìm thấy thông tin nhân viên!' };
+      }
+
+      // Check existing registrations on this exact date
+      const sameDaySlots = offSlots
+        .filter((s) => s.weekKey === data.weekKey && s.dateStr === data.dateStr)
+        .sort((a, b) => new Date(a.registeredAt).getTime() - new Date(b.registeredAt).getTime());
+
+      if (sameDaySlots.length >= maxSlotsPerDay) {
+        return {
+          success: false,
+          message: `Ngày ${data.dayLabel} đã đủ ${maxSlotsPerDay} người đăng ký trước (hết slot). Vui lòng chọn ngày khác!`,
+        };
+      }
+
+      // Check if employee already registered in this same week
+      const existingInWeek = offSlots.find(
+        (s) => s.weekKey === data.weekKey && s.employeeId === data.employeeId
+      );
+
+      let updatedList = offSlots;
+      if (existingInWeek) {
+        // If they already registered on this exact day, no change needed
+        if (existingInWeek.dateStr === data.dateStr) {
+          return {
+            success: false,
+            message: `${emp.name} đã đăng ký slot OFF vào ngày ${data.dayLabel} rồi!`,
+          };
+        }
+        // Remove old registration to switch to this new day
+        updatedList = offSlots.filter((s) => s.id !== existingInWeek.id);
+      }
+
+      const currentDayRemaining = updatedList.filter(
+        (s) => s.weekKey === data.weekKey && s.dateStr === data.dateStr
+      );
+      const priorityOrder = currentDayRemaining.length + 1;
+
+      const newSlot: OffSlotRegistration = {
+        id: `off-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        weekKey: data.weekKey,
+        dateStr: data.dateStr,
+        dayOfWeek: data.dayOfWeek,
+        dayLabel: data.dayLabel,
+        employeeId: emp.id,
+        employeeName: emp.name,
+        employeeRole: emp.role,
+        employeeColor: emp.color,
+        registeredAt: new Date().toISOString(),
+        priorityOrder,
+        reason: data.reason?.trim() || undefined,
+      };
+
+      setOffSlots([...updatedList, newSlot]);
+      return {
+        success: true,
+        message: existingInWeek
+          ? `Đã đổi ngày OFF của ${emp.name} sang ${data.dayLabel} (Ưu tiên slot #${priorityOrder})!`
+          : `Đã đăng ký slot OFF cho ${emp.name} vào ${data.dayLabel} thành công (Ưu tiên slot #${priorityOrder})!`,
+        slot: newSlot,
+      };
+    },
+    [employees, offSlots, maxSlotsPerDay]
+  );
+
+  const cancelOffSlot = useCallback(
+    (slotId: string) => {
+      const target = offSlots.find((s) => s.id === slotId);
+      if (!target) return { success: false, message: 'Không tìm thấy slot' };
+
+      const remaining = offSlots.filter((s) => s.id !== slotId);
+      // Re-index priority order for that day
+      const updated = remaining.map((s) => {
+        if (s.weekKey === target.weekKey && s.dateStr === target.dateStr) {
+          const sameDaySlots = remaining
+            .filter((x) => x.weekKey === target.weekKey && x.dateStr === target.dateStr)
+            .sort((a, b) => new Date(a.registeredAt).getTime() - new Date(b.registeredAt).getTime());
+          const newOrder = sameDaySlots.findIndex((x) => x.id === s.id) + 1;
+          return { ...s, priorityOrder: newOrder };
+        }
+        return s;
+      });
+
+      setOffSlots(updated);
+      return {
+        success: true,
+        message: `Đã hủy slot OFF của ${target.employeeName} (${target.dayLabel})`,
+      };
+    },
+    [offSlots]
+  );
+
   return (
     <StoreContext.Provider
       value={{
@@ -742,6 +901,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setIsNightMode,
         language,
         setLanguage,
+        offSlots,
+        maxSlotsPerDay,
+        setMaxSlotsPerDay,
+        registerOffSlot,
+        cancelOffSlot,
       }}
     >
       {children}

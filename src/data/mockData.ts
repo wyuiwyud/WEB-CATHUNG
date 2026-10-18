@@ -160,3 +160,63 @@ export const INITIAL_SHIFTS: Shift[] = [
   },
 ];
 
+export const INITIAL_OFF_SLOTS = [
+  {
+    id: 'off-1',
+    weekKey: 'week-2026-10-19',
+    dateStr: '2026-10-20',
+    dayOfWeek: 2, // Thứ 3
+    dayLabel: 'Thứ 3 (20/10)',
+    employeeId: 'nv-duy',
+    employeeName: 'Duy',
+    employeeRole: 'Bếp nướng & Phục vụ',
+    employeeColor: '#2563EB',
+    registeredAt: '2026-10-17T09:15:00',
+    priorityOrder: 1,
+    reason: 'Việc bận gia đình',
+  },
+  {
+    id: 'off-2',
+    weekKey: 'week-2026-10-19',
+    dateStr: '2026-10-20',
+    dayOfWeek: 2, // Thứ 3
+    dayLabel: 'Thứ 3 (20/10)',
+    employeeId: 'nv01',
+    employeeName: 'Nguyễn Văn An',
+    employeeRole: 'Nướng chính & Bếp',
+    employeeColor: '#6366F1',
+    registeredAt: '2026-10-17T11:30:00',
+    priorityOrder: 2,
+    reason: 'Đổi ca nghỉ cá nhân',
+  },
+  {
+    id: 'off-3',
+    weekKey: 'week-2026-10-19',
+    dateStr: '2026-10-21',
+    dayOfWeek: 3, // Thứ 4
+    dayLabel: 'Thứ 4 (21/10)',
+    employeeId: 'nv02',
+    employeeName: 'Trần Thị Bình',
+    employeeRole: 'Thu ngân & Order',
+    employeeColor: '#EC4899',
+    registeredAt: '2026-10-17T14:20:00',
+    priorityOrder: 1,
+    reason: 'Khám sức khỏe',
+  },
+  {
+    id: 'off-4',
+    weekKey: 'week-2026-10-26',
+    dateStr: '2026-10-27',
+    dayOfWeek: 2, // Thứ 3 tuần sau
+    dayLabel: 'Thứ 3 (27/10)',
+    employeeId: 'nv-duy',
+    employeeName: 'Duy',
+    employeeRole: 'Bếp nướng & Phục vụ',
+    employeeColor: '#2563EB',
+    registeredAt: '2026-10-18T10:00:00',
+    priorityOrder: 1,
+    reason: 'Nghỉ định kỳ',
+  },
+];
+
+
