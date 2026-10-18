@@ -98,9 +98,9 @@ export const AppleTimePicker: React.FC<AppleTimePickerProps> = ({ value, onChang
   };
 
   return (
-    <div className="relative w-full max-w-[320px] mx-auto select-none bg-slate-900/90 text-white rounded-[24px] p-3 shadow-xl border border-slate-800 overflow-hidden">
+    <div className="relative w-full max-w-[320px] mx-auto select-none liquid-glass-dark text-white rounded-[26px] p-3.5 shadow-2xl border border-white/10 overflow-hidden">
       {/* Label on top */}
-      <div className="flex justify-around text-[11px] font-bold uppercase tracking-wider text-slate-400 pb-1 border-b border-slate-800">
+      <div className="flex justify-around text-[11px] font-bold uppercase tracking-widest text-slate-400 pb-2 border-b border-white/10">
         <span className="w-24 text-center">Giờ</span>
         <span className="w-4 text-center text-indigo-400">:</span>
         <span className="w-24 text-center">Phút</span>
@@ -110,9 +110,9 @@ export const AppleTimePicker: React.FC<AppleTimePickerProps> = ({ value, onChang
         className="relative flex items-center justify-center my-1"
         style={{ height: `${ITEM_HEIGHT * VISIBLE_COUNT}px` }}
       >
-        {/* Apple iOS Central Highlight Bar */}
+        {/* Apple iOS Central Highlight Bar with Liquid Glow */}
         <div
-          className="absolute left-2 right-2 rounded-[14px] bg-indigo-500/20 border border-indigo-400/40 pointer-events-none"
+          className="absolute left-2 right-2 rounded-[16px] bg-gradient-to-r from-indigo-500/20 via-indigo-500/30 to-indigo-500/20 border border-indigo-400/50 shadow-[0_0_24px_rgba(99,102,241,0.3)] backdrop-blur-xs pointer-events-none"
           style={{
             top: `${ITEM_HEIGHT * 2}px`,
             height: `${ITEM_HEIGHT}px`,
@@ -120,10 +120,10 @@ export const AppleTimePicker: React.FC<AppleTimePickerProps> = ({ value, onChang
         />
 
         {/* Top Gradient Fade Overlay */}
-        <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-slate-900 via-slate-900/80 to-transparent pointer-events-none z-10" />
+        <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-[#0F172A] via-[#0F172A]/75 to-transparent pointer-events-none z-10" />
 
         {/* Bottom Gradient Fade Overlay */}
-        <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-slate-900 via-slate-900/80 to-transparent pointer-events-none z-10" />
+        <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-[#0F172A] via-[#0F172A]/75 to-transparent pointer-events-none z-10" />
 
         {/* HOURS WHEEL COLUMN */}
         <div

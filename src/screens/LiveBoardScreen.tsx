@@ -177,29 +177,29 @@ export const LiveBoardScreen: React.FC<LiveBoardScreenProps> = ({
         {/* Search */}
         <div className="relative flex-1">
           <Search className={`w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 ${
-            isAllOffDuty ? 'text-slate-500' : 'text-slate-400'
+            isAllOffDuty ? 'text-slate-400' : 'text-slate-500'
           }`} />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={t('searchInBoardPlaceholder')}
-            className={`w-full min-h-[42px] pl-10 pr-3 rounded-[14px] border text-xs focus:outline-none transition-colors ${
+            className={`w-full min-h-[44px] pl-10 pr-3 rounded-[16px] text-xs focus:outline-none transition-all shadow-xs ${
               isAllOffDuty
-                ? 'bg-slate-900/90 border-slate-800 text-white placeholder:text-slate-500 focus:border-amber-500'
-                : 'bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-indigo-500'
+                ? 'liquid-glass-dark text-white placeholder:text-slate-500 border border-white/10 focus:border-amber-400'
+                : 'liquid-glass text-slate-900 placeholder:text-slate-400 border border-white/80 focus:border-indigo-500'
             }`}
           />
         </div>
 
         {/* Filter Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto py-1">
+        <div className="flex items-center gap-1.5 overflow-x-auto py-1 no-scrollbar">
           <button
             onClick={() => setStatusFilter('all')}
             className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
               statusFilter === 'all'
-                ? isAllOffDuty ? 'bg-amber-500 text-slate-950 font-black' : 'bg-slate-900 text-white'
-                : isAllOffDuty ? 'bg-slate-900/90 border border-slate-800 text-slate-400 hover:text-white' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                ? 'liquid-btn-glare bg-indigo-600 text-white shadow-md'
+                : isAllOffDuty ? 'liquid-glass-pill-dark text-slate-300 hover:text-white' : 'liquid-glass-pill text-slate-600 hover:text-indigo-600'
             }`}
           >
             {t('filterAll')} ({employees.length})
@@ -208,8 +208,8 @@ export const LiveBoardScreen: React.FC<LiveBoardScreenProps> = ({
             onClick={() => setStatusFilter('working')}
             className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
               statusFilter === 'working'
-                ? 'bg-amber-500 text-white'
-                : isAllOffDuty ? 'bg-slate-900/90 border border-slate-800 text-slate-400 hover:text-white' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                ? 'liquid-btn-glare bg-amber-500 text-slate-950 font-bold shadow-md'
+                : isAllOffDuty ? 'liquid-glass-pill-dark text-slate-300 hover:text-white' : 'liquid-glass-pill text-slate-600 hover:text-indigo-600'
             }`}
           >
             {t('filterWorking')} ({kpis.working})
@@ -218,8 +218,8 @@ export const LiveBoardScreen: React.FC<LiveBoardScreenProps> = ({
             onClick={() => setStatusFilter('completed')}
             className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
               statusFilter === 'completed'
-                ? 'bg-emerald-600 text-white'
-                : isAllOffDuty ? 'bg-slate-900/90 border border-slate-800 text-slate-400 hover:text-white' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                ? 'liquid-btn-glare bg-emerald-600 text-white shadow-md'
+                : isAllOffDuty ? 'liquid-glass-pill-dark text-slate-300 hover:text-white' : 'liquid-glass-pill text-slate-600 hover:text-indigo-600'
             }`}
           >
             {t('filterCompleted')} ({kpis.completed})
@@ -228,8 +228,8 @@ export const LiveBoardScreen: React.FC<LiveBoardScreenProps> = ({
             onClick={() => setStatusFilter('not_started')}
             className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
               statusFilter === 'not_started'
-                ? 'bg-slate-600 text-white'
-                : isAllOffDuty ? 'bg-slate-900/90 border border-slate-800 text-slate-400 hover:text-white' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                ? 'liquid-btn-glare bg-slate-700 text-white shadow-md'
+                : isAllOffDuty ? 'liquid-glass-pill-dark text-slate-300 hover:text-white' : 'liquid-glass-pill text-slate-600 hover:text-indigo-600'
             }`}
           >
             {t('filterNotStarted')} ({kpis.notStarted})
@@ -246,10 +246,10 @@ export const LiveBoardScreen: React.FC<LiveBoardScreenProps> = ({
             <Card
               key={employee.id}
               padding="sm"
-              className={`transition-all rounded-[18px] ${
+              className={`transition-all rounded-[22px] ${
                 isAllOffDuty
-                  ? 'bg-slate-900/85 border-slate-800 text-slate-100 shadow-md hover:border-slate-700'
-                  : 'bg-white border-slate-200/90 text-slate-900 shadow-sm'
+                  ? 'liquid-glass-dark text-slate-100 hover:border-white/20'
+                  : 'liquid-glass text-slate-900 hover:border-indigo-300/80'
               } ${
                 isNewlyAdded
                   ? 'animate-flash-green ring-2 ring-emerald-400 bg-emerald-50/20'

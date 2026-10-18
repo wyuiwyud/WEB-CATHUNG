@@ -228,15 +228,15 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
           {/* ========================================================================= */}
           {/* ⏰ THIẾT KẾ GIỐNG ĐỒNG HỒ APPLE (BÁNH XE CUỘN GIỜ & PHÚT CHUẨN APPLE)   */}
           {/* ========================================================================= */}
-          <div className="p-4 rounded-[22px] bg-slate-900 text-white shadow-xl border border-slate-800 space-y-3">
+          <div className="p-4 sm:p-5 rounded-[26px] liquid-glass-dark text-white shadow-2xl border border-white/10 space-y-3.5 backdrop-blur-2xl">
             {/* Toggle Tabs: [Giờ vào làm] vs [Giờ tan ca] */}
-            <div className="grid grid-cols-2 gap-2 p-1 rounded-[16px] bg-slate-800/90 border border-slate-700/80">
+            <div className="grid grid-cols-2 gap-2 p-1.5 rounded-[18px] bg-slate-950/60 border border-white/10 backdrop-blur-md">
               <button
                 type="button"
                 onClick={() => setActiveTimeField('start')}
-                className={`py-2 px-3 rounded-[12px] text-xs font-bold transition-all flex flex-col items-center justify-center ${
+                className={`py-2 px-3 rounded-[13px] text-xs font-bold transition-all flex flex-col items-center justify-center ${
                   activeTimeField === 'start'
-                    ? 'bg-gradient-to-r from-indigo-600 to-indigo-500 text-white shadow-md'
+                    ? 'liquid-btn-glare bg-gradient-to-r from-indigo-600 via-indigo-500 to-indigo-600 text-white shadow-lg border-t border-white/30'
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
@@ -247,9 +247,9 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
               <button
                 type="button"
                 onClick={() => setActiveTimeField('end')}
-                className={`py-2 px-3 rounded-[12px] text-xs font-bold transition-all flex flex-col items-center justify-center ${
+                className={`py-2 px-3 rounded-[13px] text-xs font-bold transition-all flex flex-col items-center justify-center ${
                   activeTimeField === 'end'
-                    ? 'bg-gradient-to-r from-amber-600 to-orange-500 text-white shadow-md'
+                    ? 'liquid-btn-glare bg-gradient-to-r from-amber-600 via-orange-500 to-amber-600 text-white shadow-lg border-t border-white/30'
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
@@ -268,7 +268,7 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
             </div>
 
             {/* Quick Presets underneath Apple Wheel */}
-            <div className="pt-2 border-t border-slate-800 space-y-1.5 text-xs">
+            <div className="pt-2 border-t border-white/10 space-y-1.5 text-xs">
               <div className="flex items-center justify-between">
                 <span className="text-[11px] text-slate-400 font-medium">
                   {activeTimeField === 'start' ? 'Gợi ý giờ vào ca quán:' : 'Gợi ý giờ tan ca quán:'}
@@ -289,16 +289,16 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
               </div>
 
               {activeTimeField === 'start' ? (
-                <div className="grid grid-cols-6 gap-1">
+                <div className="grid grid-cols-6 gap-1.5">
                   {['12:00', '13:00', '15:00', '16:00', '17:00', '18:00'].map((presetTime) => (
                     <button
                       key={presetTime}
                       type="button"
                       onClick={() => setStartTime(presetTime)}
-                      className={`py-1 rounded-lg text-[10px] font-bold tabular-nums transition-all ${
+                      className={`py-1.5 rounded-xl text-[10px] font-bold tabular-nums transition-all border ${
                         startTime === presetTime
-                          ? 'bg-indigo-500 text-white shadow-xs'
-                          : 'bg-slate-800 text-slate-300 hover:text-white'
+                          ? 'liquid-btn-glare bg-indigo-500 text-white border-white/30 shadow-md'
+                          : 'bg-slate-800/80 border-white/5 text-slate-300 hover:text-white hover:bg-slate-700/80'
                       }`}
                     >
                       {presetTime}
@@ -306,16 +306,16 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
                   ))}
                 </div>
               ) : (
-                <div className="grid grid-cols-6 gap-1">
+                <div className="grid grid-cols-6 gap-1.5">
                   {['22:00', '23:00', '00:00', '01:00', '02:00', '03:00'].map((presetTime) => (
                     <button
                       key={presetTime}
                       type="button"
                       onClick={() => setEndTime(presetTime)}
-                      className={`py-1 rounded-lg text-[10px] font-bold tabular-nums transition-all ${
+                      className={`py-1.5 rounded-xl text-[10px] font-bold tabular-nums transition-all border ${
                         endTime === presetTime
-                          ? 'bg-amber-400 text-slate-900 shadow-xs'
-                          : 'bg-slate-800 text-slate-300 hover:text-white'
+                          ? 'liquid-btn-glare bg-amber-400 text-slate-950 border-amber-200 shadow-md font-black'
+                          : 'bg-slate-800/80 border-white/5 text-slate-300 hover:text-white hover:bg-slate-700/80'
                       }`}
                     >
                       {presetTime}
@@ -329,10 +329,10 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
           {/* Calculation Result */}
           <div>
             {durationResult.isValid ? (
-              <div className={`p-3.5 rounded-[18px] border shadow-sm flex items-center justify-between transition-colors ${
+              <div className={`p-4 rounded-[22px] transition-all ${
                 isNightMode
-                  ? 'bg-slate-900/85 border-slate-800 text-slate-100'
-                  : 'bg-white border-indigo-200/90 text-slate-800'
+                  ? 'liquid-glass-dark text-slate-100'
+                  : 'liquid-glass text-slate-800'
               }`}>
                 <div>
                   <p className={`text-xs font-medium ${isNightMode ? 'text-slate-400' : 'text-slate-500'}`}>{t('totalShiftDuration')}</p>

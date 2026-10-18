@@ -39,17 +39,17 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
     const variantStyles = {
       primary:
-        'bg-gradient-to-r from-[#4F46E5] to-[#6366F1] text-white hover:from-[#4338CA] hover:to-[#4F46E5] hover:-translate-y-0.5 active:scale-[0.98] shadow-md hover:shadow-lg shadow-indigo-500/25 focus-visible:ring-[#4F46E5]',
+        'liquid-btn-glare bg-gradient-to-r from-[#4F46E5] via-[#5B54F0] to-[#6366F1] text-white hover:from-[#4338CA] hover:to-[#4F46E5] hover:-translate-y-0.5 active:scale-[0.98] shadow-lg shadow-indigo-500/30 border-t border-white/35 focus-visible:ring-[#4F46E5]',
       secondary:
-        'bg-white text-[#0F172A] border border-[#E2E8F0] hover:bg-[#F8FAFC] hover:border-[#CBD5E1] hover:-translate-y-0.5 active:scale-[0.98] shadow-sm hover:shadow focus-visible:ring-slate-400',
+        'liquid-btn-glare liquid-glass text-[#0F172A] hover:text-indigo-600 hover:-translate-y-0.5 active:scale-[0.98] shadow-sm hover:shadow focus-visible:ring-slate-400',
       outline:
-        'border-2 border-[#4F46E5] text-[#4F46E5] bg-transparent hover:bg-[#EEF2FF] hover:-translate-y-0.5 active:scale-[0.98] focus-visible:ring-[#4F46E5]',
+        'border-2 border-indigo-500/70 text-[#4F46E5] bg-indigo-50/40 backdrop-blur-md hover:bg-indigo-100/60 hover:-translate-y-0.5 active:scale-[0.98] focus-visible:ring-[#4F46E5]',
       danger:
-        'bg-[#EF4444] text-white hover:bg-[#DC2626] hover:-translate-y-0.5 active:scale-[0.98] shadow-md shadow-red-500/20 focus-visible:ring-red-500',
+        'liquid-btn-glare bg-gradient-to-r from-red-500 to-rose-600 text-white hover:from-red-600 hover:to-rose-700 hover:-translate-y-0.5 active:scale-[0.98] shadow-lg shadow-red-500/25 border-t border-white/30 focus-visible:ring-red-500',
       success:
-        'bg-[#10B981] text-white hover:bg-[#059669] hover:-translate-y-0.5 active:scale-[0.98] shadow-md shadow-emerald-500/20 focus-visible:ring-emerald-500',
+        'liquid-btn-glare bg-gradient-to-r from-emerald-500 to-teal-600 text-white hover:from-emerald-600 hover:to-teal-700 hover:-translate-y-0.5 active:scale-[0.98] shadow-lg shadow-emerald-500/25 border-t border-white/30 focus-visible:ring-emerald-500',
       ghost:
-        'text-[#64748B] hover:text-[#0F172A] hover:bg-[#F1F5F9] active:scale-[0.98] focus-visible:ring-slate-400',
+        'text-[#64748B] hover:text-[#0F172A] hover:bg-slate-200/50 backdrop-blur-sm active:scale-[0.98] focus-visible:ring-slate-400',
     };
 
     return (

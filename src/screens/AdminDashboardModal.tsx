@@ -246,7 +246,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
               disabled={lockoutTimer > 0}
               onChange={(e) => setPinInput(e.target.value.replace(/\D/g, ''))}
               placeholder="••••"
-              className="w-44 text-center tracking-[0.5em] text-2xl font-black min-h-[50px] mx-auto rounded-[14px] bg-slate-50 border border-slate-300 focus:bg-white focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 tabular-nums"
+              className="w-44 text-center tracking-[0.5em] text-2xl font-black min-h-[52px] mx-auto rounded-[18px] liquid-glass border border-white/80 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/15 tabular-nums shadow-inner"
               autoFocus
             />
 
@@ -295,23 +295,23 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
             </button>
           </div>
 
-          {/* 4 Admin KPI Cards (Tự động tính toán, không cần duyệt) */}
+          {/* 4 Admin KPI Cards (Liquid Glass) */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-            <div className="p-3 bg-slate-50 rounded-[16px] border border-slate-200">
+            <div className="p-3.5 liquid-glass rounded-[20px] border border-white/80 shadow-xs">
               <p className="text-[11px] text-slate-500 font-semibold">{language === 'zh' ? '总人员数' : 'Tổng nhân sự'}</p>
-              <p className="text-lg font-black text-slate-900 tabular-nums">{employees.length}</p>
+              <p className="text-xl font-black text-slate-900 tabular-nums">{employees.length}</p>
             </div>
-            <div className="p-3 bg-amber-50 rounded-[16px] border border-amber-200">
+            <div className="p-3.5 liquid-glass rounded-[20px] border border-amber-200/70 shadow-xs">
               <p className="text-[11px] text-amber-800 font-semibold">{language === 'zh' ? '正在当班' : 'Đang trong ca'}</p>
-              <p className="text-lg font-black text-amber-900 tabular-nums">{workingShiftsCount}</p>
+              <p className="text-xl font-black text-amber-700 tabular-nums">{workingShiftsCount}</p>
             </div>
-            <div className="p-3 bg-emerald-50 rounded-[16px] border border-emerald-200">
+            <div className="p-3.5 liquid-glass rounded-[20px] border border-emerald-200/70 shadow-xs">
               <p className="text-[11px] text-emerald-800 font-semibold">{t('statusCompleted')}</p>
-              <p className="text-lg font-black text-emerald-900 tabular-nums">{completedShiftsCount}</p>
+              <p className="text-xl font-black text-emerald-700 tabular-nums">{completedShiftsCount}</p>
             </div>
-            <div className="p-3 bg-indigo-50 rounded-[16px] border border-indigo-200">
+            <div className="p-3.5 liquid-glass rounded-[20px] border border-indigo-200/70 shadow-xs">
               <p className="text-[11px] text-indigo-800 font-semibold">{language === 'zh' ? '预计薪酬总额' : 'Lương tạm tính'}</p>
-              <p className="text-sm sm:text-base font-black text-indigo-900 tabular-nums truncate">
+              <p className="text-sm sm:text-base font-black text-indigo-700 tabular-nums truncate">
                 {formatCurrencyVND(totalPayroll)}
               </p>
             </div>

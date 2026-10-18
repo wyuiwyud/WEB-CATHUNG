@@ -55,21 +55,21 @@ export const Modal: React.FC<ModalProps> = ({
       {/* Backdrop */}
       <div
         onClick={onClose}
-        className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm animate-backdrop transition-opacity"
+        className="fixed inset-0 bg-slate-950/55 backdrop-blur-md animate-backdrop transition-opacity"
       />
 
       {/* Modal Dialog */}
       <div
         className={cn(
-          'relative w-full bg-white rounded-t-[24px] sm:rounded-[22px] border border-[#E2E8F0] shadow-[0_24px_60px_rgba(15,23,42,0.18)] z-10 overflow-hidden flex flex-col max-h-[92vh] animate-modal',
+          'relative w-full liquid-glass rounded-t-[30px] sm:rounded-[28px] border border-white/80 shadow-[0_30px_70px_rgba(15,23,42,0.22)] z-10 overflow-hidden flex flex-col max-h-[92vh] animate-modal',
           maxWidthStyles[maxWidth]
         )}
       >
         {/* Header */}
         {(title || showCloseButton) && (
-          <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-slate-100">
+          <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-white/40">
             <div>
-              {title && <h3 className="text-lg font-bold text-slate-900">{title}</h3>}
+              {title && <h3 className="text-lg font-bold text-slate-900 tracking-tight">{title}</h3>}
               {description && <p className="text-xs text-slate-500 mt-0.5">{description}</p>}
             </div>
             {showCloseButton && (
@@ -77,7 +77,7 @@ export const Modal: React.FC<ModalProps> = ({
                 type="button"
                 onClick={onClose}
                 aria-label="Đóng"
-                className="w-9 h-9 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                className="w-9 h-9 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 bg-white/60 hover:bg-white/90 border border-white/70 shadow-xs transition-all backdrop-blur-md"
               >
                 <X className="w-5 h-5" />
               </button>

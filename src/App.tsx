@@ -124,20 +124,40 @@ function TimeTrackApp() {
 
   return (
     <div
-      className={`min-h-screen transition-colors duration-1000 font-sans antialiased selection:bg-indigo-500 selection:text-white ${
-        isNightMode ? 'bg-[#070A14] text-slate-100' : 'bg-[#F1F5F9] text-[#0F172A]'
+      className={`min-h-screen relative overflow-x-hidden transition-colors duration-1000 font-sans antialiased selection:bg-indigo-500 selection:text-white ${
+        isNightMode ? 'bg-[#070A14] text-slate-100' : 'bg-[#F4F7FB] text-[#0F172A]'
       }`}
     >
-      {/* 🇻🇳🇨🇳 CÔNG TẮC ĐỔI NGÔN NGỮ VIỆT - TRUNG PHÍA TRÊN */}
-      <div className="w-full max-w-2xl mx-auto pt-3 px-4 sm:px-6 flex items-center justify-between">
-        <div className="flex items-center gap-1.5 text-xs font-bold opacity-80 select-none">
-          <span className="text-sm">🍢</span>
-          <span className={isNightMode ? 'text-amber-300' : 'text-slate-700'}>
-            {language === 'zh' ? '吉兴烧烤 • 员工考勤' : 'Cát Hưng • Chấm công'}
-          </span>
-        </div>
-        <LanguageToggle />
+      {/* 🌊 AMBIENT LIQUID GLASS GLOW ORBS (Khúc xạ xuyên thấu qua các lớp kính) */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        <div
+          className={`absolute -top-24 -left-20 w-96 h-96 rounded-full blur-[110px] animate-liquid-blob-1 transition-opacity duration-1000 ${
+            isNightMode ? 'bg-indigo-600/30 opacity-80' : 'bg-indigo-400/30 opacity-70'
+          }`}
+        />
+        <div
+          className={`absolute top-1/3 -right-28 w-[420px] h-[420px] rounded-full blur-[130px] animate-liquid-blob-2 transition-opacity duration-1000 ${
+            isNightMode ? 'bg-amber-600/25 opacity-70' : 'bg-amber-300/40 opacity-80'
+          }`}
+        />
+        <div
+          className={`absolute -bottom-24 left-1/4 w-[480px] h-[480px] rounded-full blur-[140px] animate-liquid-blob-3 transition-opacity duration-1000 ${
+            isNightMode ? 'bg-rose-600/20 opacity-60' : 'bg-sky-300/35 opacity-70'
+          }`}
+        />
       </div>
+
+      <div className="relative z-10">
+        {/* 🇻🇳🇨🇳 CÔNG TẮC ĐỔI NGÔN NGỮ VIỆT - TRUNG PHÍA TRÊN */}
+        <div className="w-full max-w-2xl mx-auto pt-3 px-4 sm:px-6 flex items-center justify-between">
+          <div className="flex items-center gap-1.5 text-xs font-bold opacity-80 select-none">
+            <span className="text-sm">🍢</span>
+            <span className={isNightMode ? 'text-amber-300' : 'text-slate-700'}>
+              {language === 'zh' ? '吉兴烧烤 • 员工考勤' : 'Cát Hưng • Chấm công'}
+            </span>
+          </div>
+          <LanguageToggle />
+        </div>
 
       {/* SCREEN 1: Menu chọn nhân viên */}
       {currentScreen === 'select-employee' && (
@@ -185,6 +205,7 @@ function TimeTrackApp() {
         isOpen={isAdminModalOpen}
         onClose={() => setIsAdminModalOpen(false)}
       />
+      </div>
     </div>
   );
 }

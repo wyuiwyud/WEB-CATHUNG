@@ -93,16 +93,14 @@ export const SelectEmployeeScreen: React.FC<SelectEmployeeScreenProps> = ({
       <button
         type="button"
         onClick={onGoToLiveBoard}
-        className={`w-full mb-5 p-3.5 rounded-[18px] flex items-center justify-between text-left transition-all active:scale-[0.99] shadow-sm ${
+        className={`w-full mb-5 p-4 rounded-[22px] flex items-center justify-between text-left transition-all active:scale-[0.99] liquid-glass-interactive ${
           isNightMode
-            ? 'bg-slate-900/90 hover:bg-slate-850 border border-slate-800 text-slate-100'
-            : 'bg-gradient-to-r from-indigo-50 to-blue-50 hover:from-indigo-100 hover:to-blue-100 border border-indigo-100 text-slate-900'
+            ? 'liquid-glass-dark text-slate-100 border border-white/10 shadow-xl'
+            : 'liquid-glass text-slate-900 border border-white/70 shadow-lg'
         }`}
       >
         <div className="flex items-center gap-3">
-          <div className={`w-10 h-10 rounded-full flex items-center justify-center shadow-md ${
-            isNightMode ? 'bg-indigo-600 text-white shadow-indigo-500/20' : 'bg-indigo-600 text-white shadow-indigo-500/20'
-          }`}>
+          <div className="w-11 h-11 rounded-2xl flex items-center justify-center shadow-md bg-gradient-to-tr from-indigo-600 to-indigo-500 text-white border-t border-white/30 shrink-0">
             <Users className="w-5 h-5" />
           </div>
           <div>
@@ -114,8 +112,8 @@ export const SelectEmployeeScreen: React.FC<SelectEmployeeScreenProps> = ({
             </p>
           </div>
         </div>
-        <div className={`w-8 h-8 rounded-full flex items-center justify-center shadow-sm ${
-          isNightMode ? 'bg-slate-800 text-indigo-400' : 'bg-white text-indigo-600'
+        <div className={`w-8 h-8 rounded-full flex items-center justify-center shadow-xs backdrop-blur-md ${
+          isNightMode ? 'bg-white/10 text-indigo-300 border border-white/10' : 'bg-white/80 text-indigo-600 border border-white/90'
         }`}>
           <ArrowRight className="w-4 h-4" />
         </div>
@@ -131,17 +129,17 @@ export const SelectEmployeeScreen: React.FC<SelectEmployeeScreenProps> = ({
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           placeholder={t('searchEmployeePlaceholder')}
-          className={`w-full min-h-[48px] pl-11 pr-4 py-2.5 rounded-[16px] text-sm placeholder:text-slate-400 focus:outline-none transition-all shadow-sm ${
+          className={`w-full min-h-[48px] pl-11 pr-4 py-2.5 rounded-[18px] text-sm placeholder:text-slate-400 focus:outline-none transition-all shadow-sm ${
             isNightMode
-              ? 'bg-slate-900/90 border border-slate-800 text-white focus:border-amber-400 focus:ring-2 focus:ring-amber-500/20'
-              : 'bg-white border border-[#E2E8F0] text-slate-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20'
+              ? 'liquid-glass-dark text-white border border-white/10 focus:border-amber-400 focus:ring-2 focus:ring-amber-500/20'
+              : 'liquid-glass text-slate-900 border border-white/80 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20'
           }`}
         />
         {searchTerm && (
           <button
             onClick={() => setSearchTerm('')}
             className={`absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-semibold px-2 py-1 rounded-full ${
-              isNightMode ? 'text-slate-300 bg-slate-800' : 'text-slate-400 bg-slate-100'
+              isNightMode ? 'text-slate-300 bg-slate-800/80 border border-white/10' : 'text-slate-500 bg-white/80 border border-white/80 shadow-xs'
             }`}
           >
             {t('clearText')}
@@ -169,10 +167,10 @@ export const SelectEmployeeScreen: React.FC<SelectEmployeeScreenProps> = ({
                   key={emp.id}
                   onClick={() => onSelectEmployee(emp)}
                   type="button"
-                  className={`p-3 rounded-[18px] text-left transition-all active:scale-[0.98] shadow-sm flex items-center gap-2.5 ${
+                  className={`p-3 rounded-[20px] text-left transition-all active:scale-[0.98] shadow-sm flex items-center gap-2.5 liquid-glass-interactive ${
                     isNightMode
-                      ? 'bg-slate-900/85 hover:bg-slate-800 border border-slate-800 text-slate-100'
-                      : 'bg-white hover:bg-slate-50 border border-indigo-100/90 text-slate-900'
+                      ? 'liquid-glass-dark text-slate-100 border border-white/10'
+                      : 'liquid-glass text-slate-900 border border-white/70'
                   }`}
                 >
                   <Avatar name={emp.name} color={emp.color} size="sm" isWorking={status === 'working'} />
@@ -205,10 +203,10 @@ export const SelectEmployeeScreen: React.FC<SelectEmployeeScreenProps> = ({
                 interactive
                 padding="sm"
                 onClick={() => onSelectEmployee(emp)}
-                className={`flex items-center justify-between gap-3 p-3.5 sm:p-4 rounded-[18px] transition-all ${
+                className={`flex items-center justify-between gap-3 p-3.5 sm:p-4 rounded-[20px] transition-all ${
                   isNightMode
-                    ? 'bg-slate-900/85 hover:bg-slate-800 border-slate-800 hover:border-amber-500/50 text-slate-100 shadow-md'
-                    : 'bg-white border-slate-200/90 hover:border-indigo-300 text-slate-900'
+                    ? 'liquid-glass-dark hover:border-amber-400/50 text-slate-100'
+                    : 'liquid-glass hover:border-indigo-400/60 text-slate-900'
                 }`}
               >
                 <div className="flex items-center gap-3 min-w-0">
