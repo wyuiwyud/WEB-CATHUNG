@@ -238,11 +238,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (!shiftErr && dbShifts && isMounted) {
           const loadedShifts = dbShifts.map(mapDbShiftToLocal);
           setShifts(loadedShifts);
-          // Tự động kiểm tra: Nếu hiện tại không có ai đang trong ca (working) -> bật chế độ trời tối đóng cửa!
+          // Tự động kiểm tra: Có ai đang làm (status === 'working') thì trời sáng (isNightMode = false), ngược lại nếu 0 ai làm thì trời tối
           const hasWorkingNow = loadedShifts.some((s) => s.status === 'working');
-          if (!hasWorkingNow) {
-            setIsNightMode(true);
-          }
+          setIsNightMode(!hasWorkingNow);
         }
       } catch (err) {
         console.warn('Supabase initial fetch skipped or failed:', err);
@@ -285,8 +283,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             const newShift = mapDbShiftToLocal(payload.new);
             setShifts((prev) => {
               if (prev.some((s) => s.id === newShift.id)) return prev;
-              return [newShift, ...prev];
+              const next = [newShift, ...prev];
+              const hasWorking = next.some((s) => s.status === 'working');
+              setIsNightMode(!hasWorking);
+              return next;
             });
+            if (newShift.status === 'working') {
+              setIsNightMode(false);
+            }
             setNewAddedShiftId(newShift.id);
             setTimeout(() => setNewAddedShiftId(null), 2500);
           } else if (payload.eventType === 'UPDATE') {
