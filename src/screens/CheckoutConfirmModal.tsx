@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import type { Employee, Shift } from '../types';
 import { Modal, Button, Avatar, Badge, Input } from '../components/ui';
+import { AppleTimePicker } from '../components/AppleTimePicker';
 import {
   calculateShiftDuration,
   formatCurrencyVND,
@@ -88,19 +89,9 @@ export const CheckoutConfirmModal: React.FC<CheckoutConfirmModalProps> = ({
           </Badge>
         </div>
 
-        {/* ⏰ CHỌN GIỜ TAN CA TRỰC TIẾP */}
-        <div className="py-2 flex flex-col items-center justify-center">
-          <input
-            type="time"
-            value={selectedEndTime}
-            onChange={(e) => {
-              if (e.target.value) setSelectedEndTime(e.target.value);
-            }}
-            className="text-3xl font-black text-center tabular-nums tracking-widest bg-slate-100 border-2 border-indigo-400 focus:border-indigo-600 rounded-2xl py-2 px-6 text-slate-800 outline-none cursor-pointer shadow-inner"
-          />
-          <p className="text-[11px] text-slate-500 mt-1 font-medium">
-            {language === 'zh' ? '点击可修改具体时间，或点击下方快捷键' : 'Chạm vào giờ để chỉnh hoặc bấm các nút chọn nhanh bên dưới'}
-          </p>
+        {/* Bánh xe cuộn chọn giờ tan ca Apple */}
+        <div className="py-1">
+          <AppleTimePicker value={selectedEndTime} onChange={setSelectedEndTime} />
         </div>
 
         {/* ================================================================= */}

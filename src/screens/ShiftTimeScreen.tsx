@@ -2,9 +2,9 @@ import React, { useState, useEffect, useMemo } from 'react';
 import type { Employee, Shift } from '../types';
 import { useStore } from '../store/useStore';
 import { Card, Avatar, Button, Input } from '../components/ui';
+import { AppleTimePicker } from '../components/AppleTimePicker';
 import { CheckoutConfirmModal } from './CheckoutConfirmModal';
 import {
-  Clock,
   ArrowLeft,
   Sparkles,
   AlertTriangle,
@@ -229,16 +229,6 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
           {/* ⏰ THIẾT KẾ GIỐNG ĐỒNG HỒ APPLE (BÁNH XE CUỘN GIỜ & PHÚT CHUẨN APPLE)   */}
           {/* ========================================================================= */}
           <div className="p-4 rounded-[22px] bg-slate-900 text-white shadow-xl border border-slate-800 space-y-3">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
-                <Clock className="w-4 h-4 text-indigo-400" />
-                <span>{language === 'zh' ? '选择班次时间' : 'Khung Giờ Làm Việc'}</span>
-              </span>
-              <span className="text-[11px] text-amber-300 font-semibold">
-                {language === 'zh' ? '1键快速选择' : '1 chạm chọn giờ'}
-              </span>
-            </div>
-
             {/* Toggle Tabs: [Giờ vào làm] vs [Giờ tan ca] */}
             <div className="grid grid-cols-2 gap-2 p-1 rounded-[16px] bg-slate-800/90 border border-slate-700/80">
               <button
@@ -268,35 +258,13 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
               </button>
             </div>
 
-            {/* Direct Digital Time Display & Input */}
-            <div className="py-2.5 flex flex-col items-center justify-center">
-              <div className="relative">
-                <input
-                  type="time"
-                  value={activeTimeField === 'start' ? startTime : endTime}
-                  onChange={(e) => {
-                    if (e.target.value) {
-                      if (activeTimeField === 'start') {
-                        setStartTime(e.target.value);
-                      } else {
-                        setEndTime(e.target.value);
-                      }
-                    }
-                  }}
-                  className={`text-3xl sm:text-4xl font-black text-center tabular-nums tracking-widest rounded-2xl py-2 px-6 outline-none transition-all cursor-pointer border-2 ${
-                    activeTimeField === 'start'
-                      ? 'bg-indigo-950/40 text-indigo-200 border-indigo-500/60 shadow-[0_0_20px_rgba(99,102,241,0.2)]'
-                      : 'bg-amber-950/40 text-amber-200 border-amber-500/60 shadow-[0_0_20px_rgba(245,158,11,0.2)]'
-                  }`}
-                />
-              </div>
-              <p className="text-[11px] text-slate-400 text-center mt-1.5 font-medium">
-                {activeTimeField === 'start' ? (
-                  <span>Đang chỉnh: <strong className="text-indigo-300 font-bold">{t('tabStartTime')}</strong> (chạm để nhập giờ tùy ý)</span>
-                ) : (
-                  <span>Đang chỉnh: <strong className="text-amber-300 font-bold">{t('tabEndTime')}</strong> (chạm để nhập giờ tùy ý)</span>
-                )}
-              </p>
+            {/* Bánh xe cuộn Apple (Không có chữ Đồng hồ cuộn Apple / Vuốt cuộn giờ & phút) */}
+            <div className="pt-1">
+              {activeTimeField === 'start' ? (
+                <AppleTimePicker value={startTime} onChange={setStartTime} />
+              ) : (
+                <AppleTimePicker value={endTime} onChange={setEndTime} />
+              )}
             </div>
 
             {/* Quick Presets underneath Apple Wheel */}
