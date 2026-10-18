@@ -134,10 +134,6 @@ export const CheckoutConfirmModal: React.FC<CheckoutConfirmModalProps> = ({
         {/* ⏰ Ở GIỮA: THANH CHỌN GIỜ & PHÚT GIỐNG ĐỒNG HỒ BÁO THỨC APPLE     */}
         {/* ================================================================= */}
         <div className="py-1">
-          <p className="text-xs font-bold text-center text-slate-700 uppercase tracking-wider mb-2 flex items-center justify-center gap-1.5">
-            <Clock className="w-4 h-4 text-indigo-600" />
-            <span>{t('selectCheckoutApple')}</span>
-          </p>
           <AppleTimePicker value={selectedEndTime} onChange={setSelectedEndTime} />
         </div>
 
