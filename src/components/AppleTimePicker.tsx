@@ -110,9 +110,9 @@ export const AppleTimePicker: React.FC<AppleTimePickerProps> = ({ value, onChang
         className="relative flex items-center justify-center my-1"
         style={{ height: `${ITEM_HEIGHT * VISIBLE_COUNT}px` }}
       >
-        {/* Apple iOS Central Highlight Bar with Liquid Glow */}
+        {/* Apple iOS Central Highlight Bar */}
         <div
-          className="absolute left-2 right-2 rounded-[16px] bg-gradient-to-r from-indigo-500/20 via-indigo-500/30 to-indigo-500/20 border border-indigo-400/50 shadow-[0_0_24px_rgba(99,102,241,0.3)] backdrop-blur-xs pointer-events-none"
+          className="absolute left-2 right-2 rounded-[16px] bg-indigo-500/20 border border-indigo-400/40 pointer-events-none"
           style={{
             top: `${ITEM_HEIGHT * 2}px`,
             height: `${ITEM_HEIGHT}px`,

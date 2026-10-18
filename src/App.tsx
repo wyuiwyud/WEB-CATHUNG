@@ -128,21 +128,13 @@ function TimeTrackApp() {
         isNightMode ? 'bg-[#070A14] text-slate-100' : 'bg-[#F4F7FB] text-[#0F172A]'
       }`}
     >
-      {/* 🌊 AMBIENT LIQUID GLASS GLOW ORBS (Khúc xạ xuyên thấu qua các lớp kính) */}
+      {/* 🌊 STATIC LIGHTWEIGHT AMBIENT GLOW (0% CPU, siêu mượt 60fps) */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
         <div
-          className={`absolute -top-24 -left-20 w-96 h-96 rounded-full blur-[110px] animate-liquid-blob-1 transition-opacity duration-1000 ${
-            isNightMode ? 'bg-indigo-600/30 opacity-80' : 'bg-indigo-400/30 opacity-70'
-          }`}
-        />
-        <div
-          className={`absolute top-1/3 -right-28 w-[420px] h-[420px] rounded-full blur-[130px] animate-liquid-blob-2 transition-opacity duration-1000 ${
-            isNightMode ? 'bg-amber-600/25 opacity-70' : 'bg-amber-300/40 opacity-80'
-          }`}
-        />
-        <div
-          className={`absolute -bottom-24 left-1/4 w-[480px] h-[480px] rounded-full blur-[140px] animate-liquid-blob-3 transition-opacity duration-1000 ${
-            isNightMode ? 'bg-rose-600/20 opacity-60' : 'bg-sky-300/35 opacity-70'
+          className={`absolute inset-0 transition-opacity duration-700 ${
+            isNightMode
+              ? 'bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,rgba(99,102,241,0.2),transparent_70%),radial-gradient(ellipse_60%_50%_at_100%_50%,rgba(245,158,11,0.12),transparent_70%)]'
+              : 'bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,rgba(99,102,241,0.1),transparent_70%),radial-gradient(ellipse_60%_50%_at_100%_50%,rgba(251,191,36,0.12),transparent_70%)]'
           }`}
         />
       </div>
