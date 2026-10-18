@@ -70,9 +70,33 @@ export const INITIAL_EMPLOYEES: Employee[] = [
     pin: '1234',
     defaultShift: { start: '08:00', end: '17:00' },
   },
+  {
+    id: 'nv-duy',
+    name: 'Duy',
+    role: 'Nhân viên',
+    department: 'Bếp nướng & Phục vụ',
+    hourlyRate: 43269,
+    isAdmin: true,
+    color: '#2563EB', // Blue
+    pin: '1234',
+    defaultShift: { start: '16:00', end: '01:00' },
+  },
 ];
 
 export const INITIAL_SHIFTS: Shift[] = [
+  {
+    id: 'shift-duy',
+    employeeId: 'nv-duy',
+    employeeName: 'Duy',
+    department: 'Bếp nướng & Phục vụ',
+    date: today,
+    startTime: '16:00',
+    endTime: '01:00',
+    totalMinutes: 540,
+    status: 'completed',
+    note: 'Ca làm việc của Duy',
+    createdAt: `${today}T16:00:00`,
+  },
   {
     id: 'shift-1',
     employeeId: 'nv01',

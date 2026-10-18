@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
-import { X, Printer, FileSpreadsheet, Calendar, Clock, DollarSign, CheckCircle2, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { X, Printer, FileSpreadsheet, Calendar, Clock, DollarSign, CheckCircle2, User } from 'lucide-react';
+import { useStore } from '../store/useStore';
+import { formatCurrencyVND, formatDuration } from '../utils/time';
 
 export interface DuyShiftRecord {
   id: string;
@@ -44,28 +46,122 @@ export const DUY_SHIFTS_DATA: DuyShiftRecord[] = [
 interface DuyShiftTableModalProps {
   isOpen: boolean;
   onClose: () => void;
+  targetEmployeeId?: string | null;
+  targetEmployeeName?: string | null;
 }
 
-export const DuyShiftTableModal: React.FC<DuyShiftTableModalProps> = ({ isOpen, onClose }) => {
+export const DuyShiftTableModal: React.FC<DuyShiftTableModalProps> = ({
+  isOpen,
+  onClose,
+  targetEmployeeId,
+  targetEmployeeName,
+}) => {
+  const { employees, shifts } = useStore();
   const [filterPeriod, setFilterPeriod] = useState<'all' | 'dot1' | 'dot2'>('all');
+
+  // Currently selected member ID in this modal
+  const [selectedMemberId, setSelectedMemberId] = useState<string>('nv-duy');
+
+  // Sync when targetEmployee changes or modal opens
+  useEffect(() => {
+    if (isOpen) {
+      if (targetEmployeeId) {
+        setSelectedMemberId(targetEmployeeId);
+      } else if (targetEmployeeName) {
+        const match = employees.find(
+          (e) => e.name.toLowerCase() === targetEmployeeName.toLowerCase()
+        );
+        if (match) setSelectedMemberId(match.id);
+        else if (targetEmployeeName.toLowerCase().includes('duy')) setSelectedMemberId('nv-duy');
+      }
+    }
+  }, [isOpen, targetEmployeeId, targetEmployeeName, employees]);
+
+  // Current selected employee object
+  const currentMember = useMemo(() => {
+    return (
+      employees.find((e) => e.id === selectedMemberId) ||
+      employees.find((e) => e.name.toLowerCase().includes('duy')) || {
+        id: 'nv-duy',
+        name: 'Duy',
+        role: 'Nhân viên',
+        department: 'Bếp nướng & Phục vụ',
+        hourlyRate: 43269,
+      }
+    );
+  }, [employees, selectedMemberId]);
+
+  const isDuy =
+    currentMember.name.toLowerCase().includes('duy') ||
+    currentMember.id === 'nv-duy';
+
+  // If Duy, use the exact Google Doc prompt data
+  // If another member, dynamically generate from their shifts
+  const memberShiftsData = useMemo(() => {
+    if (isDuy) {
+      if (filterPeriod === 'all') return DUY_SHIFTS_DATA;
+      return DUY_SHIFTS_DATA.filter((s) => s.period === filterPeriod);
+    }
+
+    // Dynamic member shifts
+    const memberShifts = shifts.filter((s) => s.employeeId === currentMember.id);
+    if (memberShifts.length === 0) {
+      return [];
+    }
+
+    return memberShifts.map((s, idx) => {
+      const hours = s.totalMinutes ? s.totalMinutes / 60 : 0;
+      const amount = Math.round(hours * currentMember.hourlyRate);
+      return {
+        id: s.id || String(idx),
+        date: s.date || 'Hôm nay',
+        timeRange: `${s.startTime} - ${s.endTime || 'Hiện tại'}`,
+        durationStr: s.totalMinutes ? formatDuration(s.totalMinutes) : 'Đang làm...',
+        durationHours: hours,
+        amountStr: formatCurrencyVND(amount),
+        amountNum: amount,
+        isOff: s.totalMinutes === 0 && s.status !== 'working',
+        period: 'dot1' as const,
+      };
+    });
+  }, [isDuy, filterPeriod, shifts, currentMember]);
+
+  // Summary figures
+  const summary = useMemo(() => {
+    if (isDuy) {
+      return {
+        totalHoursStr: '128 giờ',
+        rateStr: 'Khoảng 43.269đ',
+        totalSalaryStr: '5.538.432đ',
+        subtitle: 'Cập nhật hiện tại là tổng kết lương đợt 1 từ ngày 21/09 đến ngày 07/10',
+      };
+    }
+
+    const totalHours = memberShiftsData.reduce((acc, curr) => acc + curr.durationHours, 0);
+    const totalSalary = memberShiftsData.reduce((acc, curr) => acc + curr.amountNum, 0);
+
+    return {
+      totalHoursStr: `${Number(totalHours.toFixed(1))} giờ`,
+      rateStr: `${formatCurrencyVND(currentMember.hourlyRate)}/giờ`,
+      totalSalaryStr: formatCurrencyVND(totalSalary),
+      subtitle: `Bảng theo dõi ca làm việc & tính lương thành viên: ${currentMember.name}`,
+    };
+  }, [isDuy, memberShiftsData, currentMember]);
 
   if (!isOpen) return null;
 
-  const filteredData = filterPeriod === 'all'
-    ? DUY_SHIFTS_DATA
-    : DUY_SHIFTS_DATA.filter((s) => s.period === filterPeriod);
-
   // Export CSV
   const handleExportCSV = () => {
-    let csv = 'Ngay,Khung gio,So gio,Thanh tien\n';
-    DUY_SHIFTS_DATA.forEach((s) => {
+    let csv = `BẢNG CHI TIẾT CA LÀM VIỆC CỦA ${currentMember.name.toUpperCase()}\n`;
+    csv += 'Ngay,Khung gio,So gio,Thanh tien\n';
+    memberShiftsData.forEach((s) => {
       csv += `"${s.date}","${s.timeRange}","${s.durationStr}","${s.amountStr}"\n`;
     });
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'Bang_Chi_Tiet_Ca_Lam_Cua_Duy.csv';
+    a.download = `Bang_Ca_Lam_${currentMember.name.replace(/\s+/g, '_')}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -75,20 +171,20 @@ export const DuyShiftTableModal: React.FC<DuyShiftTableModalProps> = ({ isOpen, 
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-950/70 backdrop-blur-md overflow-y-auto animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-950/75 backdrop-blur-md overflow-y-auto animate-fade-in">
       <div className="relative w-full max-w-4xl bg-white rounded-[24px] shadow-2xl border border-slate-200 overflow-hidden my-auto max-h-[92vh] flex flex-col">
         {/* Modal Topbar */}
-        <div className="flex items-center justify-between px-5 py-4 bg-slate-900 text-white border-b border-slate-800 shrink-0">
+        <div className="flex items-center justify-between px-5 py-3.5 bg-slate-900 text-white border-b border-slate-800 shrink-0">
           <div className="flex items-center gap-2.5">
             <span className="p-1.5 rounded-lg bg-indigo-500/20 text-indigo-300 border border-indigo-400/30">
               <Calendar className="w-5 h-5" />
             </span>
             <div>
               <h3 className="text-base sm:text-lg font-black tracking-tight text-white flex items-center gap-2">
-                BẢNG CHI TIẾT CA LÀM VIỆC CỦA DUY
+                BẢNG CA LÀM VIỆC CHI TIẾT
               </h3>
               <p className="text-xs text-slate-400">
-                Nhật ký chấm công & bảng lương nhân viên chi tiết
+                Thành viên: <strong className="text-indigo-300">{currentMember.name}</strong> • {currentMember.department || currentMember.role}
               </p>
             </div>
           </div>
@@ -97,7 +193,7 @@ export const DuyShiftTableModal: React.FC<DuyShiftTableModalProps> = ({ isOpen, 
             <button
               onClick={handleExportCSV}
               type="button"
-              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-colors"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-colors cursor-pointer"
               title="Xuất file CSV"
             >
               <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
@@ -107,7 +203,7 @@ export const DuyShiftTableModal: React.FC<DuyShiftTableModalProps> = ({ isOpen, 
             <button
               onClick={handlePrint}
               type="button"
-              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-colors"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-colors cursor-pointer"
               title="In bảng ca làm"
             >
               <Printer className="w-3.5 h-3.5 text-indigo-400" />
@@ -117,7 +213,7 @@ export const DuyShiftTableModal: React.FC<DuyShiftTableModalProps> = ({ isOpen, 
             <button
               onClick={onClose}
               type="button"
-              className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-colors"
+              className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
               title="Đóng menu"
             >
               <X className="w-5 h-5" />
@@ -125,52 +221,68 @@ export const DuyShiftTableModal: React.FC<DuyShiftTableModalProps> = ({ isOpen, 
           </div>
         </div>
 
-        {/* Filter Pills */}
-        <div className="px-5 py-2.5 bg-slate-100/90 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 shrink-0 text-xs">
-          <div className="flex items-center gap-1.5">
-            <span className="text-slate-500 font-bold mr-1">Xem theo đợt:</span>
-            <button
-              onClick={() => setFilterPeriod('all')}
-              className={`px-3 py-1 rounded-full font-bold transition-all ${
-                filterPeriod === 'all'
-                  ? 'bg-indigo-600 text-white shadow-xs'
-                  : 'bg-white text-slate-600 hover:bg-slate-200 border border-slate-200'
-              }`}
+        {/* Member Switcher & Period Filter Bar */}
+        <div className="px-5 py-2.5 bg-slate-100/95 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 shrink-0 text-xs">
+          {/* Member selector dropdown */}
+          <div className="flex items-center gap-2">
+            <span className="text-slate-600 font-bold flex items-center gap-1">
+              <User className="w-3.5 h-3.5 text-indigo-600" />
+              <span>Thành viên:</span>
+            </span>
+            <select
+              value={selectedMemberId}
+              onChange={(e) => setSelectedMemberId(e.target.value)}
+              className="px-3 py-1 rounded-xl bg-white border border-slate-300 font-bold text-slate-800 shadow-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/30 cursor-pointer"
             >
-              Toàn bộ (25 ngày)
-            </button>
-            <button
-              onClick={() => setFilterPeriod('dot1')}
-              className={`px-3 py-1 rounded-full font-bold transition-all ${
-                filterPeriod === 'dot1'
-                  ? 'bg-indigo-600 text-white shadow-xs'
-                  : 'bg-white text-slate-600 hover:bg-slate-200 border border-slate-200'
-              }`}
-            >
-              Đợt 1 (21/09 - 07/10)
-            </button>
-            <button
-              onClick={() => setFilterPeriod('dot2')}
-              className={`px-3 py-1 rounded-full font-bold transition-all ${
-                filterPeriod === 'dot2'
-                  ? 'bg-indigo-600 text-white shadow-xs'
-                  : 'bg-white text-slate-600 hover:bg-slate-200 border border-slate-200'
-              }`}
-            >
-              Đợt 2 (08/10 - 15/10)
-            </button>
+              {employees.map((emp) => (
+                <option key={emp.id} value={emp.id}>
+                  {emp.name} ({emp.role})
+                </option>
+              ))}
+            </select>
           </div>
 
-          <div className="text-slate-500 text-[11px] font-medium flex items-center gap-3">
-            <span className="inline-flex items-center gap-1 text-emerald-700">
+          {/* Period Filter for Duy or General */}
+          {isDuy ? (
+            <div className="flex items-center gap-1.5">
+              <span className="text-slate-500 font-medium">Kỳ lương:</span>
+              <button
+                onClick={() => setFilterPeriod('all')}
+                className={`px-2.5 py-1 rounded-full font-bold transition-all ${
+                  filterPeriod === 'all'
+                    ? 'bg-indigo-600 text-white shadow-xs'
+                    : 'bg-white text-slate-600 hover:bg-slate-200 border border-slate-200'
+                }`}
+              >
+                Tất cả (25 ngày)
+              </button>
+              <button
+                onClick={() => setFilterPeriod('dot1')}
+                className={`px-2.5 py-1 rounded-full font-bold transition-all ${
+                  filterPeriod === 'dot1'
+                    ? 'bg-indigo-600 text-white shadow-xs'
+                    : 'bg-white text-slate-600 hover:bg-slate-200 border border-slate-200'
+                }`}
+              >
+                Đợt 1 (21/09 - 07/10)
+              </button>
+              <button
+                onClick={() => setFilterPeriod('dot2')}
+                className={`px-2.5 py-1 rounded-full font-bold transition-all ${
+                  filterPeriod === 'dot2'
+                    ? 'bg-indigo-600 text-white shadow-xs'
+                    : 'bg-white text-slate-600 hover:bg-slate-200 border border-slate-200'
+                }`}
+              >
+                Đợt 2 (08/10 - 15/10)
+              </button>
+            </div>
+          ) : (
+            <div className="text-slate-500 font-medium flex items-center gap-1.5">
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-              23 ca làm việc
-            </span>
-            <span className="inline-flex items-center gap-1 text-rose-600 font-bold">
-              <AlertCircle className="w-3.5 h-3.5 text-rose-600" />
-              2 ngày Off
-            </span>
-          </div>
+              <span>{memberShiftsData.length} ca làm đã ghi nhận</span>
+            </div>
+          )}
         </div>
 
         {/* Modal Scrollable Content: Google Docs Styled Document */}
@@ -179,10 +291,10 @@ export const DuyShiftTableModal: React.FC<DuyShiftTableModalProps> = ({ isOpen, 
             {/* Document Header */}
             <div className="text-center mb-6">
               <h2 className="text-xl sm:text-2xl font-black text-[#1E3A8A] tracking-wide uppercase">
-                BẢNG CHI TIẾT CA LÀM VIỆC CỦA DUY
+                BẢNG CHI TIẾT CA LÀM VIỆC CỦA {currentMember.name.toUpperCase()}
               </h2>
               <p className="text-xs sm:text-sm italic text-slate-600 mt-2 font-medium">
-                Cập nhật hiện tại là tổng kết lương đợt 1 từ ngày 21/09 đến ngày 07/10
+                {summary.subtitle}
               </p>
             </div>
 
@@ -206,7 +318,7 @@ export const DuyShiftTableModal: React.FC<DuyShiftTableModalProps> = ({ isOpen, 
                       <span>Tổng giờ làm</span>
                     </td>
                     <td className="py-2.5 px-4 text-right font-bold text-slate-900 tabular-nums">
-                      128 giờ
+                      {summary.totalHoursStr}
                     </td>
                   </tr>
                   <tr className="hover:bg-slate-50/50">
@@ -215,7 +327,7 @@ export const DuyShiftTableModal: React.FC<DuyShiftTableModalProps> = ({ isOpen, 
                       <span>Đơn giá 1 tiếng</span>
                     </td>
                     <td className="py-2.5 px-4 text-right font-medium text-slate-800 tabular-nums">
-                      Khoảng 43.269đ
+                      {summary.rateStr}
                     </td>
                   </tr>
                   {/* Dòng tổng lương nổi bật */}
@@ -224,7 +336,7 @@ export const DuyShiftTableModal: React.FC<DuyShiftTableModalProps> = ({ isOpen, 
                       Tổng lương
                     </td>
                     <td className="py-3 px-4 text-right text-base font-black text-[#1E3A8A] tabular-nums">
-                      5.538.432đ
+                      {summary.totalSalaryStr}
                     </td>
                   </tr>
                 </tbody>
@@ -252,7 +364,14 @@ export const DuyShiftTableModal: React.FC<DuyShiftTableModalProps> = ({ isOpen, 
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-300 text-slate-800">
-                  {filteredData.map((row) => {
+                  {memberShiftsData.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="py-8 text-center text-slate-400 italic font-medium">
+                        Chưa có dữ liệu ca làm việc nào được ghi nhận cho {currentMember.name}.
+                      </td>
+                    </tr>
+                  ) : (
+                    memberShiftsData.map((row) => {
                     const isOffRow = row.isOff;
                     return (
                       <tr
@@ -300,7 +419,7 @@ export const DuyShiftTableModal: React.FC<DuyShiftTableModalProps> = ({ isOpen, 
                         </td>
                       </tr>
                     );
-                  })}
+                  }))}
                 </tbody>
               </table>
             </div>
@@ -320,7 +439,7 @@ export const DuyShiftTableModal: React.FC<DuyShiftTableModalProps> = ({ isOpen, 
         {/* Modal Footer */}
         <div className="px-5 py-3 bg-white border-t border-slate-200 flex items-center justify-between shrink-0">
           <span className="text-xs text-slate-500">
-            Tổng cộng: <strong className="text-slate-800">{filteredData.length}</strong> ngày hiển thị
+            Tổng cộng: <strong className="text-slate-800">{memberShiftsData.length}</strong> ngày hiển thị
           </span>
           <button
             onClick={onClose}

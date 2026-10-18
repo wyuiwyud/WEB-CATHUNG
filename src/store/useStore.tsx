@@ -156,7 +156,15 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [employees, setEmployees] = useState<Employee[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.EMPLOYEES);
-      return saved ? JSON.parse(saved) : INITIAL_EMPLOYEES;
+      if (saved) {
+        const parsed: Employee[] = JSON.parse(saved);
+        if (!parsed.some((e) => e.name.toLowerCase() === 'duy' || e.id === 'nv-duy')) {
+          const duyEmp = INITIAL_EMPLOYEES.find((e) => e.id === 'nv-duy');
+          return duyEmp ? [...parsed, duyEmp] : parsed;
+        }
+        return parsed;
+      }
+      return INITIAL_EMPLOYEES;
     } catch {
       return INITIAL_EMPLOYEES;
     }
@@ -165,7 +173,15 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [shifts, setShifts] = useState<Shift[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.SHIFTS);
-      return saved ? JSON.parse(saved) : INITIAL_SHIFTS;
+      if (saved) {
+        const parsed: Shift[] = JSON.parse(saved);
+        if (!parsed.some((s) => s.employeeName.toLowerCase() === 'duy' || s.employeeId === 'nv-duy')) {
+          const duyShift = INITIAL_SHIFTS.find((s) => s.id === 'shift-duy');
+          return duyShift ? [duyShift, ...parsed] : parsed;
+        }
+        return parsed;
+      }
+      return INITIAL_SHIFTS;
     } catch {
       return INITIAL_SHIFTS;
     }
