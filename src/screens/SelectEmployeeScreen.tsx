@@ -3,7 +3,7 @@ import { useStore } from '../store/useStore';
 import { useTranslation } from '../i18n/translations';
 import type { Employee } from '../types';
 import { Card, Avatar, Badge } from '../components/ui';
-import { Search, ChevronRight, Flame, Users, Calendar, ArrowRight, Moon } from 'lucide-react';
+import { Search, ChevronRight, Flame, Users, Calendar, ArrowRight } from 'lucide-react';
 import { formatDisplayDate } from '../utils/time';
 import { NightRestaurantAnimation } from '../components/NightRestaurantAnimation';
 
@@ -53,12 +53,7 @@ export const SelectEmployeeScreen: React.FC<SelectEmployeeScreenProps> = ({
     }`}>
       {/* Brand Header */}
       <div className="text-center mb-6 pt-2">
-        {isNightMode ? (
-          <div className="inline-flex items-center justify-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-950/90 border border-indigo-700/60 text-amber-300 text-xs font-bold mb-3 shadow-md animate-pulse">
-            <Moon className="w-3.5 h-3.5 fill-amber-300/40 text-amber-300" />
-            <span>{t('nightModeSelectBanner')}</span>
-          </div>
-        ) : (
+        {!isNightMode && (
           <div className="inline-flex items-center justify-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-100/80 border border-orange-200/80 text-orange-700 text-xs font-semibold mb-3 shadow-sm">
             <Flame className="w-3.5 h-3.5 fill-orange-500 text-orange-600 animate-pulse" />
             <span>{t('appSubtitle')}</span>
