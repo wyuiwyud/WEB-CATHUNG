@@ -9,7 +9,6 @@ import {
   ArrowLeft,
   Sparkles,
   AlertTriangle,
-  Play,
   FileText,
   Calendar,
   LogOut,
@@ -37,7 +36,7 @@ interface ShiftTimeScreenProps {
     note?: string;
     isWorkingCheckIn?: boolean;
   }) => void;
-  onFastCheckIn: (startTime: string) => void;
+  onFastCheckIn?: (startTime: string) => void;
   onFastCheckOut: (shiftId: string, endTime: string, note?: string) => void;
 }
 
@@ -48,7 +47,6 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
   initialEndTime,
   onBack,
   onContinueToConfirm,
-  onFastCheckIn,
   onFastCheckOut,
 }) => {
   const { isNightMode } = useStore();
@@ -56,7 +54,6 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
 
   // Realtime clock
   const [currentTime, setCurrentTime] = useState<string>('');
-  const [currentSeconds, setCurrentSeconds] = useState<string>('');
 
   // Modal for giant Checkout button
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
@@ -69,9 +66,7 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
       const now = new Date();
       const h = now.getHours().toString().padStart(2, '0');
       const m = now.getMinutes().toString().padStart(2, '0');
-      const s = now.getSeconds().toString().padStart(2, '0');
       setCurrentTime(`${h}:${m}`);
-      setCurrentSeconds(s);
     };
     updateTime();
     const interval = setInterval(updateTime, 1000);
@@ -231,43 +226,6 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
         /* 🟢 TRƯỜNG HỢP 2: CHƯA VÀO CA ➔ CHỌN CA BẰNG ĐỒNG HỒ APPLE & CA NHANH 3H, 4H, 5H */
         /* ========================================================================= */
         <div className="space-y-4">
-          {/* Quick Start Shift Button */}
-          <div className="p-4 rounded-[20px] bg-slate-900 text-white text-center shadow-lg relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none" />
-            <p className="text-[11px] text-slate-400 uppercase tracking-widest font-semibold flex items-center justify-center gap-1.5 mb-0.5">
-              <Clock className="w-3.5 h-3.5 text-indigo-400" />
-              <span>{t('currentTimeLabel')}</span>
-            </p>
-            <div className="flex items-baseline justify-center gap-1 tabular-nums font-extrabold text-3xl sm:text-4xl text-white tracking-tight mb-3">
-              <span>{currentTime || '00:00'}</span>
-              <span className="text-xs text-indigo-400 font-bold w-6 text-left">
-                :{currentSeconds || '00'}
-              </span>
-            </div>
-
-            <Button
-              variant={isNightMode ? 'primary' : 'success'}
-              size="lg"
-              fullWidth
-              leftIcon={isNightMode ? <Sun className="w-4 h-4 text-slate-950 fill-slate-950/20" /> : <Play className="w-4 h-4 fill-white" />}
-              onClick={() => onFastCheckIn(currentTime || getCurrentTimeString())}
-              className={`py-3.5 text-base font-black ${
-                isNightMode
-                  ? 'bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 text-slate-950 border border-amber-300 shadow-[0_8px_25px_rgba(245,158,11,0.35)]'
-                  : 'shadow-emerald-500/20'
-              }`}
-            >
-              {isNightMode
-                ? t('btnStartWorkingWake', { time: currentTime })
-                : `${t('btnStartWorkingNow')} ${currentTime}`}
-            </Button>
-            <p className="text-[11px] text-slate-400 mt-1.5">
-              {isNightMode
-                ? t('startWorkingWakeHint')
-                : t('startWorkingHint')}
-            </p>
-          </div>
-
           {/* ========================================================================= */}
           {/* ⏰ THIẾT KẾ GIỐNG ĐỒNG HỒ APPLE (BÁNH XE CUỘN GIỜ & PHÚT CHUẨN APPLE)   */}
           {/* ========================================================================= */}
