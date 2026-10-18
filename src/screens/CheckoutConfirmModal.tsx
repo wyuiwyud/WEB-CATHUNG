@@ -50,38 +50,39 @@ export const CheckoutConfirmModal: React.FC<CheckoutConfirmModalProps> = ({
 }) => {
   const { t, language } = useTranslation();
 
-  // Compute recent predicted times (e.g. 15 mins ago, 30 mins ago, 45 mins ago when getting home)
+  // Compute smart recent predicted times based on current clock
+  // Ví dụ: Hiện tại đang là 3:00 -> gợi ý: 2:30 (-30p), 2:00 (-1 tiếng), 1:00 (-2 tiếng)
   const predictedRecentTimes = useMemo(() => {
     const now = new Date();
     const currentM = now.getHours() * 60 + now.getMinutes();
 
     const calcTimeMinus = (minutesAgo: number) => {
       let tMin = currentM - minutesAgo;
-      if (tMin < 0) tMin += 24 * 60;
+      while (tMin < 0) tMin += 24 * 60;
       return formatMinutesToTime(tMin);
     };
 
     return [
       {
-        id: 'ago-15',
-        label: language === 'zh' ? '15分钟前' : '15p trước',
-        time: calcTimeMinus(15),
-        desc: language === 'zh' ? '刚收拾完毕离店' : 'Vừa dọn xong & rời quán',
-        icon: Bike,
-      },
-      {
-        id: 'ago-30',
-        label: language === 'zh' ? '30分钟前' : '30p trước',
+        id: 'ago-30m',
+        label: language === 'zh' ? '约30分钟前' : 'Trước ~30p',
         time: calcTimeMinus(30),
-        desc: language === 'zh' ? '正在回家路上' : 'Đang trên đường về',
+        desc: language === 'zh' ? '刚收拾完毕' : 'Dọn dẹp xong',
         icon: Bike,
       },
       {
-        id: 'ago-45',
-        label: language === 'zh' ? '45分钟前' : '45p trước',
-        time: calcTimeMinus(45),
-        desc: language === 'zh' ? '刚刚到家' : 'Vừa về tới nhà',
+        id: 'ago-1h',
+        label: language === 'zh' ? '约1小时前' : 'Trước ~1 tiếng',
+        time: calcTimeMinus(60),
+        desc: language === 'zh' ? '到家洗漱完毕' : 'Tan ca rời quán',
         icon: Home,
+      },
+      {
+        id: 'ago-2h',
+        label: language === 'zh' ? '约2小时前' : 'Trước ~2 tiếng',
+        time: calcTimeMinus(120),
+        desc: language === 'zh' ? '较早前已下班' : 'Ca sớm hơn',
+        icon: Clock,
       },
     ];
   }, [language]);
