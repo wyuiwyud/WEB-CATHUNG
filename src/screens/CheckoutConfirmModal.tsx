@@ -6,17 +6,13 @@ import {
   calculateShiftDuration,
   formatCurrencyVND,
   getCurrentTimeString,
-  formatMinutesToTime,
 } from '../utils/time';
 import {
   Clock,
-  Sparkles,
   CheckCircle2,
   RotateCcw,
   AlertTriangle,
   FileText,
-  Home,
-  Bike,
 } from 'lucide-react';
 import { useTranslation } from '../i18n/translations';
 
@@ -49,43 +45,6 @@ export const CheckoutConfirmModal: React.FC<CheckoutConfirmModalProps> = ({
   onConfirmCheckout,
 }) => {
   const { t, language } = useTranslation();
-
-  // Compute smart recent predicted times based on current clock
-  // Ví dụ: Hiện tại đang là 3:00 -> gợi ý: 2:30 (-30p), 2:00 (-1 tiếng), 1:00 (-2 tiếng)
-  const predictedRecentTimes = useMemo(() => {
-    const now = new Date();
-    const currentM = now.getHours() * 60 + now.getMinutes();
-
-    const calcTimeMinus = (minutesAgo: number) => {
-      let tMin = currentM - minutesAgo;
-      while (tMin < 0) tMin += 24 * 60;
-      return formatMinutesToTime(tMin);
-    };
-
-    return [
-      {
-        id: 'ago-30m',
-        label: language === 'zh' ? '约30分钟前' : 'Trước ~30p',
-        time: calcTimeMinus(30),
-        desc: language === 'zh' ? '刚收拾完毕' : 'Dọn dẹp xong',
-        icon: Bike,
-      },
-      {
-        id: 'ago-1h',
-        label: language === 'zh' ? '约1小时前' : 'Trước ~1 tiếng',
-        time: calcTimeMinus(60),
-        desc: language === 'zh' ? '到家洗漱完毕' : 'Tan ca rời quán',
-        icon: Home,
-      },
-      {
-        id: 'ago-2h',
-        label: language === 'zh' ? '约2小时前' : 'Trước ~2 tiếng',
-        time: calcTimeMinus(120),
-        desc: language === 'zh' ? '较早前已下班' : 'Ca sớm hơn',
-        icon: Clock,
-      },
-    ];
-  }, [language]);
 
   // Default to current time
   const [selectedEndTime, setSelectedEndTime] = useState<string>(() => {
@@ -140,11 +99,13 @@ export const CheckoutConfirmModal: React.FC<CheckoutConfirmModalProps> = ({
         {/* ================================================================= */}
         {/* 🛵 MỤC DƯỚI: DỰ ĐOÁN GIỜ TAN CA GẦN ĐÂY (VỀ TỚI NHÀ MỚI BẤM)      */}
         {/* ================================================================= */}
-        <div className="space-y-2 pt-1">
+        {/* ================================================================= */}
+        {/* 🛵 CÁC MỐC GIỜ QUEN THUỘC CỦA QUÁN NƯỚNG CÁT HƯNG                  */}
+        {/* ================================================================= */}
+        <div className="space-y-1.5 pt-1">
           <div className="flex items-center justify-between px-1">
-            <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-              <span>{t('recentPredictions')}</span>
+            <span className="text-[11px] font-bold text-slate-500">
+              {language === 'zh' ? '快捷下班时间' : 'Chọn nhanh mốc giờ tan ca:'}
             </span>
             <button
               type="button"
@@ -156,31 +117,8 @@ export const CheckoutConfirmModal: React.FC<CheckoutConfirmModalProps> = ({
             </button>
           </div>
 
-          {/* Quick cards: 15p trước, 30p trước, 45p trước */}
-          <div className="grid grid-cols-3 gap-2">
-            {predictedRecentTimes.map((item) => {
-              const isSelected = selectedEndTime === item.time;
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => setSelectedEndTime(item.time)}
-                  className={`p-2.5 rounded-[14px] border text-center transition-all active:scale-95 flex flex-col items-center justify-center ${
-                    isSelected
-                      ? 'border-indigo-600 bg-indigo-50/90 text-indigo-950 font-bold ring-2 ring-indigo-500/20 shadow-sm'
-                      : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-2xs'
-                  }`}
-                >
-                  <item.icon className="w-3.5 h-3.5 text-indigo-600 mb-0.5" />
-                  <span className="text-xs font-black tabular-nums">{item.time}</span>
-                  <span className="text-[10px] text-slate-500">{item.label}</span>
-                </button>
-              );
-            })}
-          </div>
-
           {/* Các mốc giờ quen thuộc của quán nướng Cát Hưng */}
-          <div className="grid grid-cols-4 gap-1.5 pt-1">
+          <div className="grid grid-cols-4 gap-1.5">
             {POPULAR_CHECKOUT_PRESETS.map((preset) => {
               const isSelected = selectedEndTime === preset.time;
               return (
