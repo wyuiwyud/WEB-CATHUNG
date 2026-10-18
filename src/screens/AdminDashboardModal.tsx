@@ -16,10 +16,12 @@ import {
   ChefHat,
   UtensilsCrossed,
   X,
+  CalendarDays,
 } from 'lucide-react';
 import { formatCurrencyVND, formatDuration, calculateShiftDuration } from '../utils/time';
 import { useToast } from '../components/ui/Toast';
 import { useTranslation } from '../i18n/translations';
+import { DuyShiftTableModal } from '../components/DuyShiftTableModal';
 
 interface AdminDashboardModalProps {
   isOpen: boolean;
@@ -53,6 +55,9 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
 
   // Active Admin Tab
   const [activeTab, setActiveTab] = useState<'shifts' | 'salary' | 'staff'>('shifts');
+
+  // Duy Shift Table Modal
+  const [isDuyTableOpen, setIsDuyTableOpen] = useState(false);
 
   // Edit Shift Modal
   const [editingShift, setEditingShift] = useState<Shift | null>(null);
@@ -366,6 +371,16 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                     : `Toàn bộ ca làm việc (${shifts.length}) — Tự động lưu & tính lương`}
                 </span>
                 <div className="flex items-center gap-2">
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    leftIcon={<CalendarDays className="w-4 h-4 text-amber-300" />}
+                    onClick={() => setIsDuyTableOpen(true)}
+                    className="bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-bold shadow-sm"
+                  >
+                    {t('btnDuyShiftTable')}
+                  </Button>
+
                   <Button
                     variant="outline"
                     size="sm"
@@ -780,6 +795,12 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
           </div>
         </Modal>
       )}
+
+      {/* MODAL BẢNG CHI TIẾT CA LÀM VIỆC CỦA DUY */}
+      <DuyShiftTableModal
+        isOpen={isDuyTableOpen}
+        onClose={() => setIsDuyTableOpen(false)}
+      />
     </Modal>
   );
 };
