@@ -333,36 +333,61 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
             </div>
 
             {/* Quick Presets underneath Apple Wheel */}
-            <div className="pt-1 flex items-center justify-between text-xs">
-              <button
-                type="button"
-                onClick={() => {
-                  setStartTime(currentTime || getCurrentTimeString());
-                  setActiveTimeField('start');
-                }}
-                className="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 hover:text-white text-[11px] font-semibold"
-              >
-                {t('quickCheckInNow')} ({currentTime})
-              </button>
-              <div className="flex gap-1">
-                {['00:00', '01:00', '02:00', '23:00'].map((presetTime) => (
-                  <button
-                    key={presetTime}
-                    type="button"
-                    onClick={() => {
-                      setEndTime(presetTime);
-                      setActiveTimeField('end');
-                    }}
-                    className={`px-2 py-0.5 rounded-lg text-[10px] font-bold tabular-nums ${
-                      endTime === presetTime
-                        ? 'bg-amber-400 text-slate-900'
-                        : 'bg-slate-800 text-slate-400 hover:text-white'
-                    }`}
-                  >
-                    {presetTime}
-                  </button>
-                ))}
+            <div className="pt-2 border-t border-slate-800 space-y-1.5 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] text-slate-400 font-medium">
+                  {activeTimeField === 'start' ? 'Gợi ý giờ vào ca quán:' : 'Gợi ý giờ tan ca quán:'}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (activeTimeField === 'start') {
+                      setStartTime(currentTime || getCurrentTimeString());
+                    } else {
+                      setEndTime(currentTime || getCurrentTimeString());
+                    }
+                  }}
+                  className="text-amber-300 hover:text-amber-200 text-[11px] font-bold underline"
+                >
+                  {t('quickCheckInNow')} ({currentTime})
+                </button>
               </div>
+
+              {activeTimeField === 'start' ? (
+                <div className="grid grid-cols-6 gap-1">
+                  {['12:00', '13:00', '15:00', '16:00', '17:00', '18:00'].map((presetTime) => (
+                    <button
+                      key={presetTime}
+                      type="button"
+                      onClick={() => setStartTime(presetTime)}
+                      className={`py-1 rounded-lg text-[10px] font-bold tabular-nums transition-all ${
+                        startTime === presetTime
+                          ? 'bg-indigo-500 text-white shadow-xs'
+                          : 'bg-slate-800 text-slate-300 hover:text-white'
+                      }`}
+                    >
+                      {presetTime}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="grid grid-cols-6 gap-1">
+                  {['22:00', '23:00', '00:00', '01:00', '02:00', '03:00'].map((presetTime) => (
+                    <button
+                      key={presetTime}
+                      type="button"
+                      onClick={() => setEndTime(presetTime)}
+                      className={`py-1 rounded-lg text-[10px] font-bold tabular-nums transition-all ${
+                        endTime === presetTime
+                          ? 'bg-amber-400 text-slate-900 shadow-xs'
+                          : 'bg-slate-800 text-slate-300 hover:text-white'
+                      }`}
+                    >
+                      {presetTime}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 

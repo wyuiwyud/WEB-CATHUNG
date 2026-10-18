@@ -48,35 +48,7 @@ export function calculateShiftDuration(startTime: string, endTime?: string): Shi
   const startM = parseMinutes(startTime);
   const endM = parseMinutes(endTime);
 
-  // Check overnight shift: e.g. start in afternoon/night (startM >= 12:00) and end after midnight (endM <= 08:00)
-  const isOvernightNightShift = startM >= 12 * 60 && endM <= 8 * 60;
-
-  if (endM < startM) {
-    if (isOvernightNightShift) {
-      // Overnight shift across midnight
-      const total = endM + 24 * 60 - startM;
-      const hours = Math.floor(total / 60);
-      const minutes = total % 60;
-      return {
-        totalMinutes: total,
-        isOvernight: true,
-        isValid: true,
-        formattedString: `${hours}h ${minutes.toString().padStart(2, '0')}p`,
-      };
-    } else {
-      return {
-        totalMinutes: 0,
-        isOvernight: false,
-        isValid: false,
-        errorMessage: 'Giờ tan ca phải sau giờ bắt đầu làm',
-        formattedString: '0h 00p',
-      };
-    }
-  }
-
-
-  const diff = endM - startM;
-  if (diff === 0) {
+  if (startM === endM) {
     return {
       totalMinutes: 0,
       isOvernight: false,
@@ -86,12 +58,28 @@ export function calculateShiftDuration(startTime: string, endTime?: string): Shi
     };
   }
 
-  const hours = Math.floor(diff / 60);
-  const minutes = diff % 60;
+  // Nếu giờ kết thúc nhỏ hơn giờ bắt đầu -> Tự động tính là ca qua đêm (vượt qua 0h sáng hôm sau)
+  // Quán nướng Cát Hưng nhân viên có thể vào lúc 12h, 13h, 15h, 16h, 17h, 18h và làm tới 0h, 1h, 2h, 3h, 4h sáng hôm sau!
+  let totalMinutes = endM >= startM ? endM - startM : endM + 24 * 60 - startM;
+  const isOvernight = endM < startM;
+
+  // Giới hạn hợp lý ca làm quán nướng không quá 16 tiếng
+  if (totalMinutes > 16 * 60) {
+    return {
+      totalMinutes: 0,
+      isOvernight,
+      isValid: false,
+      errorMessage: 'Ca làm vượt quá 16 tiếng. Vui lòng kiểm tra lại giờ vào/tan ca',
+      formattedString: '0h 00p',
+    };
+  }
+
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
 
   return {
-    totalMinutes: diff,
-    isOvernight: false,
+    totalMinutes,
+    isOvernight,
     isValid: true,
     formattedString: `${hours}h ${minutes.toString().padStart(2, '0')}p`,
   };
