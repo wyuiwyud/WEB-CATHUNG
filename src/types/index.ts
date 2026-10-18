@@ -9,6 +9,7 @@ export interface Employee {
   isAdmin: boolean;
   color: string;
   pin: string;
+  tasks?: string[]; // Danh sách các nhiệm vụ công việc
   defaultShift: {
     start: string;
     end: string;

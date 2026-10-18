@@ -13,6 +13,9 @@ import {
   Trash2,
   FileSpreadsheet,
   LogOut,
+  ChefHat,
+  UtensilsCrossed,
+  X,
 } from 'lucide-react';
 import { formatCurrencyVND, formatDuration, calculateShiftDuration } from '../utils/time';
 import { useToast } from '../components/ui/Toast';
@@ -60,9 +63,46 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   // Add staff modal
   const [isAddingStaff, setIsAddingStaff] = useState(false);
   const [newStaffName, setNewStaffName] = useState('');
-  const [newStaffRole, setNewStaffRole] = useState('Phục vụ');
-  const [newStaffDept, setNewStaffDept] = useState('Phục vụ bàn');
+  const [newStaffType, setNewStaffType] = useState<'phuc_vu' | 'bep'>('phuc_vu');
   const [newStaffRate, setNewStaffRate] = useState('50000');
+
+  // Default tasks templates
+  const DEFAULT_TASKS_SERVE = [
+    'Chào đón & sắp xếp bàn cho khách',
+    'Nhận gọi món (Order) qua máy / sổ',
+    'Bưng bê thức ăn, xiên nướng lên bàn',
+    'Thay vỉ nướng & hỗ trợ khách nướng thịt',
+    'Dọn dẹp bàn & lau chùi khu vực ăn uống',
+    'Hỗ trợ thanh toán và tiễn khách',
+  ];
+
+  const DEFAULT_TASKS_KITCHEN = [
+    'Sơ chế thịt, ướp gia vị xiên nướng',
+    'Xiên que nướng theo định lượng',
+    'Đốt than, canh than đỏ đều vào lò',
+    'Trực tiếp nướng & kiểm tra độ chín món ăn',
+    'Bày trí đĩa nướng kèm rau sốt chấm',
+    'Vệ sinh bếp than, vỉ nướng & dọn rửa cuối ca',
+  ];
+
+  const [staffTasks, setStaffTasks] = useState<string[]>(DEFAULT_TASKS_SERVE);
+  const [newTaskInput, setNewTaskInput] = useState('');
+
+  // Auto switch default task template when switching category
+  const handleSelectStaffType = (type: 'phuc_vu' | 'bep') => {
+    setNewStaffType(type);
+    setStaffTasks(type === 'phuc_vu' ? [...DEFAULT_TASKS_SERVE] : [...DEFAULT_TASKS_KITCHEN]);
+  };
+
+  const handleAddTask = () => {
+    if (!newTaskInput.trim()) return;
+    setStaffTasks((prev) => [...prev, newTaskInput.trim()]);
+    setNewTaskInput('');
+  };
+
+  const handleRemoveTask = (indexToRemove: number) => {
+    setStaffTasks((prev) => prev.filter((_, idx) => idx !== indexToRemove));
+  };
 
   // Handle Lockout countdown
   useEffect(() => {
@@ -150,14 +190,18 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
     const colors = ['#6366F1', '#EC4899', '#10B981', '#0EA5E9', '#8B5CF6', '#F59E0B'];
     const randomColor = colors[Math.floor(Math.random() * colors.length)];
 
+    const roleName = newStaffType === 'phuc_vu' ? 'Phục vụ bàn' : 'Bếp nướng';
+    const deptName = newStaffType === 'phuc_vu' ? 'Phục vụ bàn' : 'Bếp';
+
     addEmployee({
       name: newStaffName.trim(),
-      role: newStaffRole,
-      department: newStaffDept,
+      role: roleName,
+      department: deptName,
       hourlyRate: rate,
       isAdmin: false,
       color: randomColor,
       pin: '1234',
+      tasks: [...staffTasks],
       defaultShift: { start: '08:00', end: '17:00' },
     });
 
@@ -497,31 +541,124 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                   </h5>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <Input
-                      label={language === 'zh' ? '员工姓名' : 'Họ và tên'}
+                      label={language === 'zh' ? '员工姓名' : 'Họ và tên nhân viên'}
                       placeholder={language === 'zh' ? '例如：张伟' : 'Ví dụ: Lê Văn Nam'}
                       value={newStaffName}
                       onChange={(e) => setNewStaffName(e.target.value)}
                     />
                     <Input
-                      label={language === 'zh' ? '岗位名称' : 'Vị trí làm việc'}
-                      placeholder={language === 'zh' ? '例如：烤肉主厨 / 前台收银' : 'Ví dụ: Nướng bàn / Thu ngân'}
-                      value={newStaffRole}
-                      onChange={(e) => setNewStaffRole(e.target.value)}
-                    />
-                    <Input
-                      label={language === 'zh' ? '所属部门' : 'Bộ phận'}
-                      placeholder={language === 'zh' ? '例如：炭火厨房' : 'Ví dụ: Bếp nướng'}
-                      value={newStaffDept}
-                      onChange={(e) => setNewStaffDept(e.target.value)}
-                    />
-                    <Input
-                      label={language === 'zh' ? '工时单价 (越盾/小时)' : 'Đơn giá (VNĐ/giờ)'}
+                      label={language === 'zh' ? '工时单价 (越盾/小时)' : 'Mức lương (VNĐ/giờ)'}
                       type="number"
                       value={newStaffRate}
                       onChange={(e) => setNewStaffRate(e.target.value)}
                     />
                   </div>
-                  <div className="flex justify-end gap-2 pt-2">
+
+                  {/* MENU CHỌN PHỤC VỤ HOẶC BẾP */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      {language === 'zh' ? '选择岗位类型' : 'Chọn bộ phận làm việc:'}
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleSelectStaffType('phuc_vu')}
+                        className={`p-3 rounded-[14px] border flex items-center justify-center gap-2.5 font-bold transition-all ${
+                          newStaffType === 'phuc_vu'
+                            ? 'bg-indigo-50 border-indigo-500 text-indigo-700 ring-2 ring-indigo-500/20 shadow-xs'
+                            : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                        }`}
+                      >
+                        <UtensilsCrossed className="w-4 h-4 text-indigo-600" />
+                        <span>{language === 'zh' ? '服务员 (Phục vụ)' : 'Phục vụ bàn'}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleSelectStaffType('bep')}
+                        className={`p-3 rounded-[14px] border flex items-center justify-center gap-2.5 font-bold transition-all ${
+                          newStaffType === 'bep'
+                            ? 'bg-amber-50 border-amber-500 text-amber-900 ring-2 ring-amber-500/20 shadow-xs'
+                            : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                        }`}
+                      >
+                        <ChefHat className="w-4 h-4 text-amber-600" />
+                        <span>{language === 'zh' ? '后厨 (Bếp)' : 'Bộ phận Bếp'}</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* BẢNG CÁC NHIỆM VỤ CẦN LÀM (CÓ THỂ THÊM / XÓA) */}
+                  <div className="pt-2 border-t border-slate-200">
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                        <span>
+                          {newStaffType === 'phuc_vu'
+                            ? (language === 'zh' ? '📋 服务员职责清单' : '📋 Nhiệm vụ của Phục vụ bàn:')
+                            : (language === 'zh' ? '👨‍🍳 厨房职责清单' : '👨‍🍳 Nhiệm vụ của Bếp:')}
+                        </span>
+                        <span className="text-[11px] font-normal text-slate-500">
+                          ({staffTasks.length} {language === 'zh' ? '项' : 'nhiệm vụ'})
+                        </span>
+                      </label>
+                    </div>
+
+                    {/* Danh sách nhiệm vụ hiện tại */}
+                    <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
+                      {staffTasks.map((task, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-center justify-between p-2 rounded-[10px] bg-white border border-slate-200 shadow-2xs group hover:border-slate-300"
+                        >
+                          <div className="flex items-center gap-2 min-w-0 pr-2">
+                            <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-bold flex items-center justify-center shrink-0">
+                              {idx + 1}
+                            </span>
+                            <span className="text-xs text-slate-800 truncate">{task}</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveTask(idx)}
+                            className="p-1 text-slate-400 hover:text-rose-600 rounded-md hover:bg-rose-50 transition-colors shrink-0"
+                            title={language === 'zh' ? '删除任务' : 'Xóa nhiệm vụ'}
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Ô thêm nhiệm vụ mới */}
+                    <div className="flex items-center gap-2 mt-2.5">
+                      <input
+                        type="text"
+                        value={newTaskInput}
+                        onChange={(e) => setNewTaskInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleAddTask();
+                          }
+                        }}
+                        placeholder={
+                          newStaffType === 'phuc_vu'
+                            ? (language === 'zh' ? '添加服务员新任务...' : 'Thêm nhiệm vụ phục vụ mới...')
+                            : (language === 'zh' ? '添加厨房新任务...' : 'Thêm nhiệm vụ bếp mới...')
+                        }
+                        className="flex-1 px-3 py-2 text-xs rounded-[12px] border border-slate-300 bg-white placeholder:text-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddTask}
+                        className="px-3 py-2 rounded-[12px] bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center gap-1 transition-colors shrink-0"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>{language === 'zh' ? '添加' : 'Thêm'}</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-2 pt-3 border-t border-slate-200">
                     <Button
                       type="button"
                       variant="secondary"
