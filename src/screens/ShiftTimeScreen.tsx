@@ -58,9 +58,6 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
   const [currentTime, setCurrentTime] = useState<string>('');
   const [currentSeconds, setCurrentSeconds] = useState<string>('');
 
-  // Elapsed time for working shift
-  const [elapsedString, setElapsedString] = useState<string>('');
-
   // Modal for giant Checkout button
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
 
@@ -75,30 +72,11 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
       const s = now.getSeconds().toString().padStart(2, '0');
       setCurrentTime(`${h}:${m}`);
       setCurrentSeconds(s);
-
-      // Compute elapsed time if working
-      if (existingShift?.status === 'working' && existingShift.startTime) {
-        const [startH, startM] = existingShift.startTime.split(':').map(Number);
-        const startTotalMinutes = startH * 60 + startM;
-        let currentTotalMinutes = now.getHours() * 60 + now.getMinutes();
-        if (currentTotalMinutes < startTotalMinutes) {
-          // past midnight
-          currentTotalMinutes += 24 * 60;
-        }
-        const diff = Math.max(0, currentTotalMinutes - startTotalMinutes);
-        const eh = Math.floor(diff / 60);
-        const em = diff % 60;
-        setElapsedString(
-          language === 'zh'
-            ? `${eh} 小时 ${em} 分 ${s} 秒`
-            : `${eh} giờ ${em} phút ${s} giây`
-        );
-      }
     };
     updateTime();
     const interval = setInterval(updateTime, 1000);
     return () => clearInterval(interval);
-  }, [existingShift, language]);
+  }, []);
 
   // Form states
   const isCurrentlyWorking = existingShift?.status === 'working';
@@ -217,20 +195,6 @@ export const ShiftTimeScreen: React.FC<ShiftTimeScreenProps> = ({
                 ? `在岗工作中，上班自 ${existingShift.startTime}`
                 : `Đang trong ca làm việc từ lúc ${existingShift.startTime}`}
             </span>
-          </div>
-
-          {/* Running time counter */}
-          <div className="bg-slate-900 rounded-[20px] p-4 text-white shadow-xl max-w-sm mx-auto border border-slate-800">
-            <p className="text-[11px] text-slate-400 uppercase tracking-widest font-semibold flex items-center justify-center gap-1.5 mb-1">
-              <Clock className="w-3.5 h-3.5 text-indigo-400" />
-              <span>{t('elapsedWorkTime')}</span>
-            </p>
-            <p className="text-2xl sm:text-3xl font-black text-amber-300 tabular-nums tracking-tight">
-              {elapsedString || (language === 'zh' ? '正在计算...' : 'Đang cập nhật...')}
-            </p>
-            <p className="text-[11px] text-slate-400 mt-1">
-              {t('startedAt')}: {existingShift.startTime} • {t('currentTimeLabel')}: {currentTime}:{currentSeconds}
-            </p>
           </div>
 
           {/* 🔴 NÚT TAN CA SIÊU TO GIỮA MÀN HÌNH */}
