@@ -3,15 +3,12 @@ import { useTranslation } from '../i18n/translations';
 
 interface NightRestaurantAnimationProps {
   onStartNewShift?: () => void;
-  completedCount: number;
-  totalHoursFormatted: string;
+  completedCount?: number;
+  totalHoursFormatted?: string;
 }
 
-export const NightRestaurantAnimation: React.FC<NightRestaurantAnimationProps> = ({
-  completedCount,
-  totalHoursFormatted,
-}) => {
-  const { t, language } = useTranslation();
+export const NightRestaurantAnimation: React.FC<NightRestaurantAnimationProps> = () => {
+  const { t } = useTranslation();
 
   return (
     <div className="relative overflow-hidden rounded-[26px] bg-gradient-to-b from-[#060913] via-[#0B1120] to-[#151C35] border border-indigo-500/30 p-6 sm:p-8 text-white text-center shadow-[0_20px_50px_rgba(0,0,0,0.6)] transition-all duration-1000 animate-fade-in my-3">
@@ -128,23 +125,6 @@ export const NightRestaurantAnimation: React.FC<NightRestaurantAnimationProps> =
           <p className="text-xs text-slate-400 mt-1 leading-relaxed">
             {t('nightClosedDesc')}
           </p>
-
-          {/* Daily summary badge */}
-          <div className="mt-3 pt-2.5 border-t border-slate-800 flex items-center justify-around text-xs text-slate-300">
-            <div>
-              <span className="text-[10px] text-slate-400 block">{t('completedShiftsCount')}</span>
-              <span className="font-extrabold text-emerald-400 text-sm tabular-nums">
-                {completedCount} {language === 'zh' ? '班' : 'ca'}
-              </span>
-            </div>
-            <div className="w-px h-6 bg-slate-800" />
-            <div>
-              <span className="text-[10px] text-slate-400 block">{t('totalWorkHours')}</span>
-              <span className="font-extrabold text-amber-400 text-sm tabular-nums">
-                {totalHoursFormatted}
-              </span>
-            </div>
-          </div>
         </div>
       </div>
     </div>
